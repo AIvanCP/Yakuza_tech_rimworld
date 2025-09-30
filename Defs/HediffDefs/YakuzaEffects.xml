@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+  <!-- Custom hediff for Yakuza technique effects -->
+  <HediffDef>
+    <defName>YakuzaStunned</defName>
+    <label>technique stunned</label>
+    <description>Stunned by a powerful Yakuza combat technique. Cannot move or act effectively.</description>
+    <hediffClass>HediffWithComps</hediffClass>
+    <defaultLabelColor>(0.8, 0.8, 0.1)</defaultLabelColor>
+    <makesSickThought>false</makesSickThought>
+    <maxSeverity>1.0</maxSeverity>
+    <comps>
+      <li Class="HediffCompProperties_Disappears">
+        <disappearsAfterTicks>90</disappearsAfterTicks>
+      </li>
+    </comps>
+    <stages>
+      <li>
+        <minSeverity>0.01</minSeverity>
+        <capMods>
+          <li>
+            <capacity>Moving</capacity>
+            <setMax>0.1</setMax>
+          </li>
+          <li>
+            <capacity>Manipulation</capacity>
+            <setMax>0.1</setMax>
+          </li>
+        </capMods>
+      </li>
+    </stages>
+  </HediffDef>
+
+  <HediffDef>
+    <defName>YakuzaDisoriented</defName>
+    <label>staggered</label>
+    <description>Disoriented by a devastating combat technique. Reduced accuracy and movement speed.</description>
+    <hediffClass>HediffWithComps</hediffClass>
+    <defaultLabelColor>(0.8, 0.4, 0.4)</defaultLabelColor>
+    <makesSickThought>false</makesSickThought>
+    <maxSeverity>1.0</maxSeverity>
+    <comps>
+      <li Class="HediffCompProperties_Disappears">
+        <disappearsAfterTicks>180</disappearsAfterTicks>
+      </li>
+    </comps>
+    <stages>
+      <li>
+        <minSeverity>0.01</minSeverity>
+        <capMods>
+          <li>
+            <capacity>Moving</capacity>
+            <postFactor>0.6</postFactor>
+          </li>
+          <li>
+            <capacity>Sight</capacity>
+            <postFactor>0.7</postFactor>
+          </li>
+        </capMods>
+        <statOffsets>
+          <MeleeHitChance>-8</MeleeHitChance>
+          <ShootingAccuracyPawn>-0.4</ShootingAccuracyPawn>
+        </statOffsets>
+      </li>
+    </stages>
+  </HediffDef>
+
+  <!-- Sound effects for techniques -->
+  <SoundDef>
+    <defName>YakuzaTigerDrop</defName>
+    <context>MapOnly</context>
+    <eventNames />
+    <maxSimultaneous>3</maxSimultaneous>
+    <subSounds>
+      <li>
+        <grains>
+          <li Class="AudioGrain_Clip">
+            <clipPath>Yakuza/TigerDrop</clipPath>
+          </li>
+        </grains>
+        <volumeRange>0.8~1.2</volumeRange>
+        <pitchRange>0.9~1.1</pitchRange>
+      </li>
+    </subSounds>
+  </SoundDef>
+
+  <SoundDef>
+    <defName>YakuzaKomakiParry</defName>
+    <context>MapOnly</context>
+    <eventNames />
+    <maxSimultaneous>3</maxSimultaneous>
+    <subSounds>
+      <li>
+        <grains>
+          <li Class="AudioGrain_Clip">
+            <clipPath>Yakuza/KomakiParry</clipPath>
+          </li>
+        </grains>
+        <volumeRange>0.7~1.0</volumeRange>
+        <pitchRange>0.9~1.1</pitchRange>
+      </li>
+    </subSounds>
+  </SoundDef>
+
+  <SoundDef>
+    <defName>YakuzaMajimaHeatSpin</defName>
+    <context>MapOnly</context>
+    <eventNames />
+    <maxSimultaneous>2</maxSimultaneous>
+    <subSounds>
+      <li>
+        <grains>
+          <li Class="AudioGrain_Clip">
+            <clipPath>Yakuza/HeatSpin</clipPath>
+          </li>
+        </grains>
+        <volumeRange>0.9~1.3</volumeRange>
+        <pitchRange>0.8~1.0</pitchRange>
+      </li>
+    </subSounds>
+  </SoundDef>
+
+  <SoundDef>
+    <defName>YakuzaFirearmCounter</defName>
+    <context>MapOnly</context>
+    <eventNames />
+    <maxSimultaneous>4</maxSimultaneous>
+    <subSounds>
+      <li>
+        <grains>
+          <li Class="AudioGrain_Clip">
+            <clipPath>Yakuza/FirearmCounter</clipPath>
+          </li>
+        </grains>
+        <volumeRange>0.6~0.9</volumeRange>
+        <pitchRange>1.0~1.2</pitchRange>
+      </li>
+    </subSounds>
+  </SoundDef>
+
+</Defs>

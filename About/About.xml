@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ModMetaData>
+	<name>Yakuza Combat Mastery</name>
+	<author>AIvanCP</author>
+	<packageId>yakuza.combat.mastery</packageId>
+	<description>Master the legendary combat techniques of the Yakuza series in RimWorld!
+
+Features:
+- **10 Reactive Combat Abilities** - Automatic counters, dodges, and special attacks
+- **Weapon-Specific Moves** - Each technique requires specific weapons or conditions
+- **Skill-Based Scaling** - Higher melee skill increases trigger chances
+- **Uncapped Skills** - Support for skills beyond level 20
+- **Visual Effects** - Dust, sparks, flashes for each move
+- **No Instant Kills** - Lethal damage converts to downed state
+- **Player-Only Option** - Toggle whether enemies can use techniques
+
+Combat Techniques:
+• Tiger Drop (Unarmed) - Counter with 2x damage + stun
+• Komaki Parry (Katana) - Negate damage and slash back
+• Mad Dog Dodge Slash (Knife) - Dodge and counter with bleeding
+• Komaki Knockback (Club/Baton) - Blunt counter with stagger
+• Majima Heat Spin (Surrounded) - AoE spin attack when outnumbered
+• Komaki Breakfall (Any weapon) - Recover from knockdowns instantly
+• Cat-Like Reflexes (Unarmed) - Dodge ranged attacks
+• Wall Crush (Blunt near wall) - Extended stun when near walls
+• Mad Dog Lunge (Knife) - Dash attack with bleed chance
+• Firearm Counter (Gun equipped) - Point-blank shot counter
+
+These legendary techniques trigger automatically during combat based on your skill and situation. Master them all to become an unstoppable force!</description>
+	<supportedVersions>
+		<li>1.4</li>
+		<li>1.5</li>
+	</supportedVersions>
+	<modDependencies>
+	</modDependencies>
+	<loadAfter>
+		<li>Ludeon.RimWorld</li>
+		<li>Ludeon.RimWorld.Royalty</li>
+		<li>Ludeon.RimWorld.Ideology</li>
+		<li>Ludeon.RimWorld.Biotech</li>
+	</loadAfter>
+</ModMetaData>

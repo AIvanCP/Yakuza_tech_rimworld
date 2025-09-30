@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <OutputType>Library</OutputType>
+    <AssemblyName>YakuzaCombatMoves</AssemblyName>
+    <RootNamespace>YakuzaCombatMoves</RootNamespace>
+    <OutputPath>..\..\Assemblies\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+
+  <!-- Auto-detect RimWorld installation paths -->
+  <PropertyGroup>
+    <RimWorldPath Condition="Exists('D:\Game\Rimworld\RimWorldWin64_Data\Managed\Assembly-CSharp.dll')">D:\Game\Rimworld</RimWorldPath>
+    <RimWorldPath Condition="'$(RimWorldPath)' == '' AND Exists('C:\Program Files (x86)\Steam\steamapps\common\RimWorld\RimWorldWin64_Data\Managed\Assembly-CSharp.dll')">C:\Program Files (x86)\Steam\steamapps\common\RimWorld</RimWorldPath>
+    <RimWorldPath Condition="'$(RimWorldPath)' == '' AND Exists('C:\Program Files\Steam\steamapps\common\RimWorld\RimWorldWin64_Data\Managed\Assembly-CSharp.dll')">C:\Program Files\Steam\steamapps\common\RimWorld</RimWorldPath>
+    <RimWorldPath Condition="'$(RimWorldPath)' == '' AND Exists('C:\GOG Games\RimWorld\RimWorldWin64_Data\Managed\Assembly-CSharp.dll')">C:\GOG Games\RimWorld</RimWorldPath>
+    <RimWorldPath Condition="'$(RimWorldPath)' == '' AND Exists('C:\Program Files\Epic Games\RimWorld\RimWorldWin64_Data\Managed\Assembly-CSharp.dll')">C:\Program Files\Epic Games\RimWorld</RimWorldPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Lib.Harmony" Version="2.2.2" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(RimWorldPath)' != ''">
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(RimWorldPath)\RimWorldWin64_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(RimWorldPath)\RimWorldWin64_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(RimWorldPath)\RimWorldWin64_Data\Managed\UnityEngine.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="ValidateRimWorldPath" BeforeTargets="Build">
+    <Error Condition="'$(RimWorldPath)' == ''" Text="RimWorld installation not found! Please install RimWorld or manually set RimWorldPath in the project file." />
+    <Message Text="Using RimWorld installation at: $(RimWorldPath)" Importance="high" />
+  </Target>
+
+</Project>
