@@ -137,47 +137,6 @@ namespace YakuzaCombatMoves
         }
         
         /// <summary>
-        /// Patch skill learning to support uncapped levels
-        /// </summary>
-        [HarmonyPatch(typeof(SkillRecord), "Learn")]
-        [HarmonyPrefix]
-        public static bool SkillRecord_Learn_Prefix(SkillRecord __instance, float xp, bool direct = false)
-        {
-            try
-            {
-                if (!YakuzaCombatMod.settings.enableSkillUncap) return true;
-                
-                // Don't interfere with disabled skills
-                if (__instance.TotallyDisabled) return false;
-                
-                // Allow learning regardless of current level
-                __instance.xpSinceLastLevel += xp * __instance.LearnRateFactor(direct);
-                
-                // Check if we should level up
-                while (__instance.xpSinceLastLevel >= __instance.XpRequiredForLevelUp)
-                {
-                    __instance.xpSinceLastLevel -= __instance.XpRequiredForLevelUp;
-                    __instance.Level++;
-                    
-                    // Cap at max uncapped level
-                    if (__instance.Level >= SkillUncap.MaxSkillLevel)
-                    {
-                        __instance.Level = SkillUncap.MaxSkillLevel;
-                        __instance.xpSinceLastLevel = 0f;
-                        break;
-                    }
-                }
-                
-                return false; // Skip original method
-            }
-            catch (System.Exception e)
-            {
-                CompatibilityPatches.HandleModConflict(e, "Skill learning patch");
-                return true;
-            }
-        }
-        
-        /// <summary>
         /// Patch skill display to show true level
         /// </summary>
         [HarmonyPatch(typeof(SkillRecord), "get_LevelDescriptor")]

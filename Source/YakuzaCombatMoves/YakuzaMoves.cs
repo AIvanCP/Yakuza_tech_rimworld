@@ -1,5 +1,6 @@
 using RimWorld;
 using Verse;
+using Verse.Sound;
 using UnityEngine;
 using System.Linq;
 using System;
@@ -27,8 +28,8 @@ namespace YakuzaCombatMoves
         {
             ShowTechniqueEffect(user);
             
-            // Counter with 2x melee damage
-            float counterDamage = user.GetStatValue(StatDefOf.MeleeDamageFactor) * 20f; // Base unarmed damage
+            // Calculate scaled damage with max 50 cap
+            float counterDamage = CalculateScaledDamage(user, 20f, 50f);
             counterDamage = PreventInstantKill(target, counterDamage);
             
             var damageInfo = new DamageInfo(
@@ -42,14 +43,62 @@ namespace YakuzaCombatMoves
             
             target.TakeDamage(damageInfo);
             
-            // Apply stun effect
-            ApplyStunEffect(target, 90); // 1.5 seconds
+            // Always apply stun effect
+            ApplyStunEffect(target, 90);
+            
+            // 30% chance for additional random debuff
+            float debuffChance = CalculateDebuffChance(user, 0.3f);
+            if (Rand.Chance(debuffChance))
+            {
+                ApplyRandomDebuff(target);
+            }
             
             // Visual effects
             FleckMaker.ThrowDustPuff(target.DrawPos, target.Map, 2f);
             FleckMaker.ThrowMicroSparks(target.DrawPos, target.Map);
             
+            // Play custom sound if available
+            PlayTechniqueSound("TigerDrop", user);
+            
             return true; // Negates original attack
+        }
+        
+        private void ApplyRandomDebuff(Pawn target)
+        {
+            try
+            {
+                var debuffOptions = new string[] { "YakuzaSlow", "YakuzaWeakened", "YakuzaArmorShred" };
+                string selectedDebuff = debuffOptions[Rand.Range(0, debuffOptions.Length)];
+                
+                var hediffDef = DefDatabase<HediffDef>.GetNamedSilentFail(selectedDebuff);
+                if (hediffDef != null)
+                {
+                    var hediff = HediffMaker.MakeHediff(hediffDef, target);
+                    hediff.Severity = 1.0f;
+                    target.health.AddHediff(hediff);
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error($"[Yakuza Combat] Error applying random debuff: {e.Message}");
+            }
+        }
+        
+        private void PlayTechniqueSound(string techniqueName, Pawn user)
+        {
+            try
+            {
+                // Try to play default technique sound
+                var defaultSound = DefDatabase<SoundDef>.GetNamedSilentFail($"Yakuza{techniqueName}");
+                if (defaultSound != null && user.Map != null)
+                {
+                    SoundStarter.PlayOneShot(defaultSound, new TargetInfo(user.Position, user.Map));
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Warning($"[Yakuza Combat] Could not play sound for {techniqueName}: {e.Message}");
+            }
         }
         
         private void ApplyStunEffect(Pawn target, int ticks)
@@ -78,8 +127,8 @@ namespace YakuzaCombatMoves
         public override string Description => "Katana technique that deflects attacks and counters";
         public override YakuzaWeaponType RequiredWeapon => YakuzaWeaponType.Katana;
         public override MoveTrigger TriggerCondition => MoveTrigger.OnMeleeAttackReceived;
-        public override float BaseChance => 0.10f; // 10%
-        public override float SkillScaling => 0.003f; // +0.3% per level
+        public override float BaseChance => 0.05f; // Uses unified scaling
+        public override float SkillScaling => 0.01f; // Uses unified scaling
         
         public override bool CanUseTechnique(Pawn pawn)
         {
@@ -90,8 +139,8 @@ namespace YakuzaCombatMoves
         {
             ShowTechniqueEffect(user, $"{user.LabelShort} parries and counters!");
             
-            // Counter slash
-            float slashDamage = Rand.Range(20f, 30f);
+            // Calculate scaled damage with max 50 cap
+            float slashDamage = CalculateScaledDamage(user, 15f, 50f);
             slashDamage = PreventInstantKill(target, slashDamage);
             
             var damageInfo = new DamageInfo(
@@ -109,7 +158,26 @@ namespace YakuzaCombatMoves
             FleckMaker.ThrowMetaIcon(user.Position, user.Map, FleckDefOf.IncapIcon);
             FleckMaker.ThrowMicroSparks(target.DrawPos, target.Map);
             
+            // Play sound
+            PlayTechniqueSound("KomakiParry", user);
+            
             return true; // Negates original damage
+        }
+        
+        private void PlayTechniqueSound(string techniqueName, Pawn user)
+        {
+            try
+            {
+                var defaultSound = DefDatabase<SoundDef>.GetNamedSilentFail($"Yakuza{techniqueName}");
+                if (defaultSound != null && user.Map != null)
+                {
+                    SoundStarter.PlayOneShot(defaultSound, new TargetInfo(user.Position, user.Map));
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Warning($"[Yakuza Combat] Could not play sound for {techniqueName}: {e.Message}");
+            }
         }
     }
     
@@ -122,8 +190,8 @@ namespace YakuzaCombatMoves
         public override string Description => "Dodge and counter with bleeding wound";
         public override YakuzaWeaponType RequiredWeapon => YakuzaWeaponType.Knife;
         public override MoveTrigger TriggerCondition => MoveTrigger.OnMeleeAttackReceived;
-        public override float BaseChance => 0.08f; // 8%
-        public override float SkillScaling => 0.002f; // +0.2% per level
+        public override float BaseChance => 0.05f; // Uses unified scaling
+        public override float SkillScaling => 0.01f; // Uses unified scaling
         
         public override bool CanUseTechnique(Pawn pawn)
         {
@@ -134,8 +202,8 @@ namespace YakuzaCombatMoves
         {
             ShowTechniqueEffect(user, $"{user.LabelShort} dodges and slashes!");
             
-            // Counter with bleeding
-            float slashDamage = Rand.Range(15f, 25f);
+            // Calculate scaled damage with max 45 cap
+            float slashDamage = CalculateScaledDamage(user, 12f, 45f);
             slashDamage = PreventInstantKill(target, slashDamage);
             
             var damageInfo = new DamageInfo(
@@ -149,8 +217,9 @@ namespace YakuzaCombatMoves
             
             target.TakeDamage(damageInfo);
             
-            // Apply bleeding (20% chance)
-            if (Rand.Chance(0.2f))
+            // Enhanced bleeding chance based on skill
+            float bleedChance = CalculateDebuffChance(user, 0.2f);
+            if (Rand.Chance(bleedChance))
             {
                 ApplyBleedingEffect(target);
             }
@@ -186,8 +255,8 @@ namespace YakuzaCombatMoves
         public override string Description => "Blunt weapon counter with devastating knockback";
         public override YakuzaWeaponType RequiredWeapon => YakuzaWeaponType.Club;
         public override MoveTrigger TriggerCondition => MoveTrigger.OnMeleeAttackReceived;
-        public override float BaseChance => 0.07f; // 7%
-        public override float SkillScaling => 0.003f; // +0.3% per level
+        public override float BaseChance => 0.05f; // Uses unified scaling
+        public override float SkillScaling => 0.01f; // Uses unified scaling
         
         public override bool CanUseTechnique(Pawn pawn)
         {
@@ -198,8 +267,8 @@ namespace YakuzaCombatMoves
         {
             ShowTechniqueEffect(user, $"{user.LabelShort} delivers a crushing counter!");
             
-            // Blunt counter damage
-            float bluntDamage = Rand.Range(18f, 28f);
+            // Calculate scaled blunt damage with max 50 cap
+            float bluntDamage = CalculateScaledDamage(user, 18f, 50f);
             bluntDamage = PreventInstantKill(target, bluntDamage);
             
             var damageInfo = new DamageInfo(
@@ -213,8 +282,12 @@ namespace YakuzaCombatMoves
             
             target.TakeDamage(damageInfo);
             
-            // Apply stagger effect
-            ApplyStaggerEffect(target);
+            // Apply stagger effect with enhanced chance
+            float staggerChance = CalculateDebuffChance(user, 0.4f);
+            if (Rand.Chance(staggerChance))
+            {
+                ApplyStaggerEffect(target);
+            }
             
             // Visual effects
             FleckMaker.ThrowDustPuff(target.DrawPos, target.Map, 2.5f);
@@ -226,10 +299,13 @@ namespace YakuzaCombatMoves
         {
             try
             {
-                var staggerHediff = DefDatabase<HediffDef>.GetNamedSilentFail("YakuzaDisoriented") ?? HediffDefOf.PsychicShock;
-                var hediff = HediffMaker.MakeHediff(staggerHediff, target);
-                hediff.Severity = 0.6f;
-                target.health.AddHediff(hediff);
+                var staggerHediff = DefDatabase<HediffDef>.GetNamedSilentFail("YakuzaDisoriented");
+                if (staggerHediff != null)
+                {
+                    var hediff = HediffMaker.MakeHediff(staggerHediff, target);
+                    hediff.Severity = 0.6f;
+                    target.health.AddHediff(hediff);
+                }
             }
             catch (Exception e)
             {
@@ -247,14 +323,21 @@ namespace YakuzaCombatMoves
         public override string Description => "Devastating spin attack when outnumbered";
         public override YakuzaWeaponType RequiredWeapon => YakuzaWeaponType.Any;
         public override MoveTrigger TriggerCondition => MoveTrigger.OnSurrounded;
-        public override float BaseChance => 0.10f; // 10%
-        public override float SkillScaling => 0.002f; // +0.2% per level
+        public override float BaseChance => 0.05f; // Uses unified scaling
+        public override float SkillScaling => 0.01f; // Uses unified scaling
+        
+        public override bool CanUseTechnique(Pawn pawn)
+        {
+            return base.CanUseTechnique(pawn) && YakuzaCombatMod.settings.enableMajimaHeatSpin;
+        }
         
         public override bool ExecuteTechnique(Pawn user, Pawn target, DamageInfo originalDamage)
         {
             ShowTechniqueEffect(user, $"{user.LabelShort} unleashes a heat spin attack!");
             
-            // Hit all adjacent enemies
+            int enemiesHit = 0;
+            
+            // Hit all adjacent enemies with scaled damage
             foreach (var cell in GenAdj.CellsAdjacent8Way(user))
             {
                 if (!cell.InBounds(user.Map)) continue;
@@ -264,7 +347,8 @@ namespace YakuzaCombatMoves
                 {
                     if (thing is Pawn enemy && enemy.HostileTo(user) && !enemy.Dead)
                     {
-                        float spinDamage = Rand.Range(10f, 15f);
+                        // Scaled damage based on user skill, max 40 per enemy
+                        float spinDamage = CalculateScaledDamage(user, 8f, 40f);
                         spinDamage = PreventInstantKill(enemy, spinDamage);
                         
                         var damageInfo = new DamageInfo(
@@ -278,14 +362,59 @@ namespace YakuzaCombatMoves
                         
                         enemy.TakeDamage(damageInfo);
                         FleckMaker.ThrowMicroSparks(enemy.DrawPos, enemy.Map);
+                        enemiesHit++;
+                        
+                        // Chance to apply slow debuff to each enemy
+                        float debuffChance = CalculateDebuffChance(user, 0.25f);
+                        if (Rand.Chance(debuffChance))
+                        {
+                            ApplySlowDebuff(enemy);
+                        }
                     }
                 }
             }
             
-            // Visual effect
-            FleckMaker.ThrowDustPuff(user.DrawPos, user.Map, 3f);
+            // Visual effect scales with enemies hit
+            FleckMaker.ThrowDustPuff(user.DrawPos, user.Map, 2f + enemiesHit * 0.5f);
             
-            return false; // Doesn't negate original damage
+            // Play enhanced sound
+            PlayTechniqueSound("HeatSpin", user);
+            
+            return false; // Doesn't negate original damage - it's an additional AoE
+        }
+        
+        private void ApplySlowDebuff(Pawn target)
+        {
+            try
+            {
+                var slowHediff = DefDatabase<HediffDef>.GetNamedSilentFail("YakuzaSlow");
+                if (slowHediff != null)
+                {
+                    var hediff = HediffMaker.MakeHediff(slowHediff, target);
+                    hediff.Severity = 1.0f;
+                    target.health.AddHediff(hediff);
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error($"[Yakuza Combat] Error applying slow debuff: {e.Message}");
+            }
+        }
+        
+        private void PlayTechniqueSound(string techniqueName, Pawn user)
+        {
+            try
+            {
+                var defaultSound = DefDatabase<SoundDef>.GetNamedSilentFail($"Yakuza{techniqueName}");
+                if (defaultSound != null && user.Map != null)
+                {
+                    SoundStarter.PlayOneShot(defaultSound, new TargetInfo(user.Position, user.Map));
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Warning($"[Yakuza Combat] Could not play sound for {techniqueName}: {e.Message}");
+            }
         }
     }
     
@@ -295,15 +424,15 @@ namespace YakuzaCombatMoves
     public class KomakiBreakfallTechnique : YakuzaTechnique
     {
         public override string TechniqueName => "Komaki Breakfall";
-        public override string Description => "Instantly recover from knockdown attempts";
+        public override string Description => "Instantly recover from knockdown attempts with enhanced reflexes";
         public override YakuzaWeaponType RequiredWeapon => YakuzaWeaponType.Any;
         public override MoveTrigger TriggerCondition => MoveTrigger.OnKnockdownAttempt;
-        public override float BaseChance => 0.20f; // 20%
-        public override float SkillScaling => 0.001f; // +0.1% per level
+        public override float BaseChance => 0.20f; // Will be overridden by unified scaling
+        public override float SkillScaling => 0.001f; // Will be overridden by unified scaling
         
         public override bool ExecuteTechnique(Pawn user, Pawn target, DamageInfo originalDamage)
         {
-            ShowTechniqueEffect(user, $"{user.LabelShort} recovers instantly!");
+            ShowTechniqueEffect(user, $"{user.LabelShort} recovers with enhanced reflexes!");
             
             // Force pawn to stand up if downed
             if (user.Downed)
@@ -311,10 +440,31 @@ namespace YakuzaCombatMoves
                 user.health.Reset();
             }
             
+            // Apply enhanced reflexes buff (30% dodge for 2 seconds)
+            ApplyEnhancedReflexes(user);
+            
             // Visual effect
             FleckMaker.ThrowDustPuff(user.DrawPos, user.Map, 1.5f);
             
             return true; // Prevents knockdown
+        }
+        
+        private void ApplyEnhancedReflexes(Pawn user)
+        {
+            try
+            {
+                var reflexHediff = DefDatabase<HediffDef>.GetNamedSilentFail("YakuzaEnhancedReflexes");
+                if (reflexHediff != null)
+                {
+                    var hediff = HediffMaker.MakeHediff(reflexHediff, user);
+                    hediff.Severity = 1.0f;
+                    user.health.AddHediff(hediff);
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error($"[Yakuza Combat] Error applying enhanced reflexes: {e.Message}");
+            }
         }
     }
     
@@ -327,17 +477,43 @@ namespace YakuzaCombatMoves
         public override string Description => "Supernatural dodge ability against ranged attacks";
         public override YakuzaWeaponType RequiredWeapon => YakuzaWeaponType.Unarmed;
         public override MoveTrigger TriggerCondition => MoveTrigger.OnRangedAttackReceived;
-        public override float BaseChance => 0.03f; // 3%
-        public override float SkillScaling => 0.002f; // +0.2% per level
+        public override float BaseChance => 0.05f; // Uses unified scaling
+        public override float SkillScaling => 0.01f; // Uses unified scaling
+        
+        public override bool CanUseTechnique(Pawn pawn)
+        {
+            return base.CanUseTechnique(pawn) && YakuzaCombatMod.settings.enableCatLikeReflexes;
+        }
         
         public override bool ExecuteTechnique(Pawn user, Pawn target, DamageInfo originalDamage)
         {
             ShowTechniqueEffect(user, $"{user.LabelShort} dodges with cat-like reflexes!");
             
+            // Apply brief enhanced reflexes after successful dodge
+            ApplyEnhancedReflexes(user);
+            
             // Visual effect
             FleckMaker.ThrowDustPuff(user.DrawPos, user.Map, 1f);
             
             return true; // Negates ranged damage
+        }
+        
+        private void ApplyEnhancedReflexes(Pawn user)
+        {
+            try
+            {
+                var reflexHediff = DefDatabase<HediffDef>.GetNamedSilentFail("YakuzaEnhancedReflexes");
+                if (reflexHediff != null)
+                {
+                    var hediff = HediffMaker.MakeHediff(reflexHediff, user);
+                    hediff.Severity = 0.5f; // Lower than Breakfall
+                    user.health.AddHediff(hediff);
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error($"[Yakuza Combat] Error applying enhanced reflexes: {e.Message}");
+            }
         }
     }
     
@@ -350,15 +526,22 @@ namespace YakuzaCombatMoves
         public override string Description => "Devastating slam against walls";
         public override YakuzaWeaponType RequiredWeapon => YakuzaWeaponType.Club;
         public override MoveTrigger TriggerCondition => MoveTrigger.OnNearWall;
-        public override float BaseChance => 0.12f; // 12%
-        public override float SkillScaling => 0.003f; // +0.3% per level
+        public override float BaseChance => 0.05f; // Uses unified scaling
+        public override float SkillScaling => 0.01f; // Uses unified scaling
+        
+        public override bool CanUseTechnique(Pawn pawn)
+        {
+            return base.CanUseTechnique(pawn) && YakuzaCombatMod.settings.enableWallCrush;
+        }
         
         public override bool ExecuteTechnique(Pawn user, Pawn target, DamageInfo originalDamage)
         {
             ShowTechniqueEffect(user, $"{user.LabelShort} crushes {target.LabelShort} against the wall!");
             
-            // Enhanced damage near wall
-            float wallDamage = originalDamage.Amount * 1.5f;
+            // Enhanced damage calculation: base damage + wall bonus, capped at 60
+            float baseDamage = CalculateScaledDamage(user, 20f, 50f);
+            float wallDamage = baseDamage * 1.5f; // 50% bonus near wall
+            wallDamage = Mathf.Min(wallDamage, 60f); // Higher cap due to environmental bonus
             wallDamage = PreventInstantKill(target, wallDamage);
             
             var damageInfo = new DamageInfo(
@@ -372,24 +555,58 @@ namespace YakuzaCombatMoves
             
             target.TakeDamage(damageInfo);
             
-            // Extended stun (2 extra seconds)
-            ApplyStunEffect(target, 120);
+            // Extended stun and chance for armor shred
+            ApplyStunEffect(target, 150); // 2.5 seconds
+            
+            float armorShredChance = CalculateDebuffChance(user, 0.35f);
+            if (Rand.Chance(armorShredChance))
+            {
+                ApplyArmorShred(target);
+            }
             
             // Visual effects
             FleckMaker.ThrowDustPuff(target.DrawPos, target.Map, 3f);
             
-            return false; // Replaces original damage
+            return true; // Replaces original damage with enhanced wall crush
         }
         
         private void ApplyStunEffect(Pawn target, int ticks)
         {
             try
             {
-                target.stances.stunner.StunFor(ticks, null);
+                var stunHediff = DefDatabase<HediffDef>.GetNamedSilentFail("YakuzaStunned");
+                if (stunHediff != null)
+                {
+                    var hediff = HediffMaker.MakeHediff(stunHediff, target);
+                    hediff.Severity = 0.9f;
+                    target.health.AddHediff(hediff);
+                }
+                else
+                {
+                    target.stances.stunner.StunFor(ticks, null);
+                }
             }
             catch (Exception e)
             {
                 Log.Error($"[Yakuza Combat] Error applying wall crush stun: {e.Message}");
+            }
+        }
+        
+        private void ApplyArmorShred(Pawn target)
+        {
+            try
+            {
+                var armorShredHediff = DefDatabase<HediffDef>.GetNamedSilentFail("YakuzaArmorShred");
+                if (armorShredHediff != null)
+                {
+                    var hediff = HediffMaker.MakeHediff(armorShredHediff, target);
+                    hediff.Severity = 1.0f;
+                    target.health.AddHediff(hediff);
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error($"[Yakuza Combat] Error applying armor shred: {e.Message}");
             }
         }
     }
@@ -403,15 +620,20 @@ namespace YakuzaCombatMoves
         public override string Description => "Lightning-fast dash attack";
         public override YakuzaWeaponType RequiredWeapon => YakuzaWeaponType.Knife;
         public override MoveTrigger TriggerCondition => MoveTrigger.OnMeleeAttackReceived;
-        public override float BaseChance => 0.06f; // 6%
-        public override float SkillScaling => 0.002f; // +0.2% per level
+        public override float BaseChance => 0.05f; // Uses unified scaling
+        public override float SkillScaling => 0.01f; // Uses unified scaling
+        
+        public override bool CanUseTechnique(Pawn pawn)
+        {
+            return base.CanUseTechnique(pawn) && YakuzaCombatMod.settings.enableMadDogLunge;
+        }
         
         public override bool ExecuteTechnique(Pawn user, Pawn target, DamageInfo originalDamage)
         {
             ShowTechniqueEffect(user, $"{user.LabelShort} lunges forward!");
             
-            // Dash damage
-            float lungeDamage = Rand.Range(12f, 20f);
+            // Calculate scaled dash damage with max 40 cap
+            float lungeDamage = CalculateScaledDamage(user, 10f, 40f);
             lungeDamage = PreventInstantKill(target, lungeDamage);
             
             var damageInfo = new DamageInfo(
@@ -425,8 +647,9 @@ namespace YakuzaCombatMoves
             
             target.TakeDamage(damageInfo);
             
-            // 15% bleed chance
-            if (Rand.Chance(0.15f))
+            // Enhanced bleed chance based on skill
+            float bleedChance = CalculateDebuffChance(user, 0.15f);
+            if (Rand.Chance(bleedChance))
             {
                 ApplyBleedingEffect(target);
             }
@@ -435,7 +658,7 @@ namespace YakuzaCombatMoves
             FleckMaker.ThrowDustPuff(user.DrawPos, user.Map, 2f);
             FleckMaker.ThrowMicroSparks(target.DrawPos, target.Map);
             
-            return false;
+            return false; // Additional damage, doesn't negate original
         }
         
         private void ApplyBleedingEffect(Pawn target)
@@ -462,15 +685,20 @@ namespace YakuzaCombatMoves
         public override string Description => "Point-blank counter shot";
         public override YakuzaWeaponType RequiredWeapon => YakuzaWeaponType.Gun;
         public override MoveTrigger TriggerCondition => MoveTrigger.OnMeleeAttackReceived;
-        public override float BaseChance => 0.08f; // 8%
-        public override float SkillScaling => 0.002f; // +0.2% per level
+        public override float BaseChance => 0.05f; // Uses unified scaling
+        public override float SkillScaling => 0.01f; // Uses unified scaling
+        
+        public override bool CanUseTechnique(Pawn pawn)
+        {
+            return base.CanUseTechnique(pawn) && YakuzaCombatMod.settings.enableFirearmCounter;
+        }
         
         public override bool ExecuteTechnique(Pawn user, Pawn target, DamageInfo originalDamage)
         {
             ShowTechniqueEffect(user, $"{user.LabelShort} fires point-blank!");
             
-            // Small guaranteed hit
-            float shotDamage = Rand.Range(8f, 15f);
+            // Calculate scaled shot damage with max 35 cap
+            float shotDamage = CalculateScaledDamage(user, 6f, 35f);
             shotDamage = PreventInstantKill(target, shotDamage);
             
             var damageInfo = new DamageInfo(
@@ -484,11 +712,55 @@ namespace YakuzaCombatMoves
             
             target.TakeDamage(damageInfo);
             
+            // Chance to apply weakened debuff from close-range shot
+            float weakenChance = CalculateDebuffChance(user, 0.2f);
+            if (Rand.Chance(weakenChance))
+            {
+                ApplyWeakenedDebuff(target);
+            }
+            
             // Visual effects
             FleckMaker.ThrowMicroSparks(user.DrawPos, user.Map);
             FleckMaker.ThrowMicroSparks(target.DrawPos, target.Map);
             
-            return false; // Doesn't negate original attack
+            // Play sound
+            PlayTechniqueSound("FirearmCounter", user);
+            
+            return false; // Doesn't negate original attack - additional shot
+        }
+        
+        private void ApplyWeakenedDebuff(Pawn target)
+        {
+            try
+            {
+                var weakenedHediff = DefDatabase<HediffDef>.GetNamedSilentFail("YakuzaWeakened");
+                if (weakenedHediff != null)
+                {
+                    var hediff = HediffMaker.MakeHediff(weakenedHediff, target);
+                    hediff.Severity = 1.0f;
+                    target.health.AddHediff(hediff);
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error($"[Yakuza Combat] Error applying weakened debuff: {e.Message}");
+            }
+        }
+        
+        private void PlayTechniqueSound(string techniqueName, Pawn user)
+        {
+            try
+            {
+                var defaultSound = DefDatabase<SoundDef>.GetNamedSilentFail($"Yakuza{techniqueName}");
+                if (defaultSound != null && user.Map != null)
+                {
+                    SoundStarter.PlayOneShot(defaultSound, new TargetInfo(user.Position, user.Map));
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Warning($"[Yakuza Combat] Could not play sound for {techniqueName}: {e.Message}");
+            }
         }
     }
 }

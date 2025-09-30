@@ -45,7 +45,7 @@ namespace YakuzaCombatMoves
         public abstract float SkillScaling { get; }
         
         /// <summary>
-        /// Calculate trigger chance based on melee skill
+        /// Calculate trigger chance based on melee skill using unified mechanics
         /// </summary>
         public virtual float CalculateTriggerChance(Pawn pawn)
         {
@@ -58,10 +58,74 @@ namespace YakuzaCombatMoves
                 ? SkillUncap.GetTrueSkillLevel(meleeSkill) 
                 : meleeSkill.Level;
             
-            float chance = BaseChance + (skillLevel * SkillScaling);
+            // Unified scaling: 5% base + 1% per level to 20 + 0.1% beyond 20
+            float chance = 0.05f; // 5% base chance
+            
+            if (skillLevel <= 20)
+            {
+                // Standard scaling: +1% per level up to 20
+                chance += skillLevel * 0.01f;
+            }
+            else if (YakuzaCombatMod.settings.enableUncappedScaling)
+            {
+                // Cap at level 20 base, then slower scaling beyond
+                chance += 20 * 0.01f; // 20% from first 20 levels
+                chance += (skillLevel - 20) * 0.001f; // +0.1% per level beyond 20
+            }
+            else
+            {
+                // If uncapped scaling disabled, cap at level 20 values
+                chance += 20 * 0.01f;
+            }
+            
+            // Apply global multiplier
             chance *= YakuzaCombatMod.settings.moveChanceMultiplier;
             
-            return Mathf.Clamp01(chance);
+            // Hard cap at 50%
+            return Mathf.Clamp01(Mathf.Min(chance, 0.5f));
+        }
+        
+        /// <summary>
+        /// Calculate debuff chance based on skill level (increases beyond level 20)
+        /// </summary>
+        protected virtual float CalculateDebuffChance(Pawn pawn, float baseChance = 0.3f)
+        {
+            if (!YakuzaCombatMod.settings.enableMod) return baseChance;
+            
+            var meleeSkill = pawn.skills?.GetSkill(SkillDefOf.Melee);
+            if (meleeSkill == null) return baseChance;
+            
+            int skillLevel = YakuzaCombatMod.settings.enableSkillUncap 
+                ? SkillUncap.GetTrueSkillLevel(meleeSkill) 
+                : meleeSkill.Level;
+            
+            float debuffChance = baseChance;
+            
+            // Increase debuff chance for high skill levels
+            if (skillLevel > 20 && YakuzaCombatMod.settings.enableUncappedScaling)
+            {
+                // +1% debuff chance per level beyond 20, capped at 80%
+                debuffChance += (skillLevel - 20) * 0.01f;
+                debuffChance = Mathf.Min(debuffChance, 0.8f);
+            }
+            
+            return debuffChance;
+        }
+        
+        /// <summary>
+        /// Calculate damage with level 20 cap for damage scaling
+        /// </summary>
+        protected virtual float CalculateScaledDamage(Pawn pawn, float baseDamage, float maxDamage = 50f)
+        {
+            var meleeSkill = pawn.skills?.GetSkill(SkillDefOf.Melee);
+            if (meleeSkill == null) return baseDamage;
+            
+            // Always cap damage calculations at level 20 for balance
+            int effectiveLevel = Mathf.Min(meleeSkill.Level, 20);
+            float damageFactor = pawn.GetStatValue(StatDefOf.MeleeDamageFactor);
+            
+            float scaledDamage = baseDamage + (effectiveLevel * 1.5f) * damageFactor;
+            return Mathf.Min(scaledDamage, maxDamage);
         }
         
         /// <summary>

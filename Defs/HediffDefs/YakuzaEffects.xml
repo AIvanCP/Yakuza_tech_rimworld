@@ -66,6 +66,107 @@
     </stages>
   </HediffDef>
 
+  <!-- New: Slow debuff -->
+  <HediffDef>
+    <defName>YakuzaSlow</defName>
+    <label>slowed</label>
+    <description>Movement speed severely reduced by a Yakuza technique.</description>
+    <hediffClass>HediffWithComps</hediffClass>
+    <defaultLabelColor>(0.6, 0.6, 1.0)</defaultLabelColor>
+    <makesSickThought>false</makesSickThought>
+    <maxSeverity>1.0</maxSeverity>
+    <comps>
+      <li Class="HediffCompProperties_Disappears">
+        <disappearsAfterTicks>180</disappearsAfterTicks>
+      </li>
+    </comps>
+    <stages>
+      <li>
+        <minSeverity>0.01</minSeverity>
+        <capMods>
+          <li>
+            <capacity>Moving</capacity>
+            <postFactor>0.8</postFactor>
+          </li>
+        </capMods>
+      </li>
+    </stages>
+  </HediffDef>
+
+  <!-- New: Weakened debuff -->
+  <HediffDef>
+    <defName>YakuzaWeakened</defName>
+    <label>weakened</label>
+    <description>Combat effectiveness reduced by a devastating Yakuza technique.</description>
+    <hediffClass>HediffWithComps</hediffClass>
+    <defaultLabelColor>(0.8, 0.6, 0.6)</defaultLabelColor>
+    <makesSickThought>false</makesSickThought>
+    <maxSeverity>1.0</maxSeverity>
+    <comps>
+      <li Class="HediffCompProperties_Disappears">
+        <disappearsAfterTicks>180</disappearsAfterTicks>
+      </li>
+    </comps>
+    <stages>
+      <li>
+        <minSeverity>0.01</minSeverity>
+        <statOffsets>
+          <MeleeDamageFactor>-0.15</MeleeDamageFactor>
+          <ShootingAccuracyPawn>-0.15</ShootingAccuracyPawn>
+        </statOffsets>
+      </li>
+    </stages>
+  </HediffDef>
+
+  <!-- New: Armor Shred debuff -->
+  <HediffDef>
+    <defName>YakuzaArmorShred</defName>
+    <label>armor compromised</label>
+    <description>Armor integrity compromised by a precise Yakuza technique.</description>
+    <hediffClass>HediffWithComps</hediffClass>
+    <defaultLabelColor>(0.9, 0.5, 0.5)</defaultLabelColor>
+    <makesSickThought>false</makesSickThought>
+    <maxSeverity>1.0</maxSeverity>
+    <comps>
+      <li Class="HediffCompProperties_Disappears">
+        <disappearsAfterTicks>180</disappearsAfterTicks>
+      </li>
+    </comps>
+    <stages>
+      <li>
+        <minSeverity>0.01</minSeverity>
+        <statOffsets>
+          <ArmorRating_Blunt>-0.25</ArmorRating_Blunt>
+          <ArmorRating_Sharp>-0.25</ArmorRating_Sharp>
+        </statOffsets>
+      </li>
+    </stages>
+  </HediffDef>
+
+  <!-- New: Enhanced Reflexes buff (for Breakfall) -->
+  <HediffDef>
+    <defName>YakuzaEnhancedReflexes</defName>
+    <label>enhanced reflexes</label>
+    <description>Reflexes heightened after a perfect recovery technique.</description>
+    <hediffClass>HediffWithComps</hediffClass>
+    <defaultLabelColor>(0.5, 1.0, 0.5)</defaultLabelColor>
+    <makesSickThought>false</makesSickThought>
+    <maxSeverity>1.0</maxSeverity>
+    <comps>
+      <li Class="HediffCompProperties_Disappears">
+        <disappearsAfterTicks>120</disappearsAfterTicks>
+      </li>
+    </comps>
+    <stages>
+      <li>
+        <minSeverity>0.01</minSeverity>
+        <statOffsets>
+          <MeleeDodgeChance>0.30</MeleeDodgeChance>
+        </statOffsets>
+      </li>
+    </stages>
+  </HediffDef>
+
   <!-- Sound effects for techniques -->
   <SoundDef>
     <defName>YakuzaTigerDrop</defName>

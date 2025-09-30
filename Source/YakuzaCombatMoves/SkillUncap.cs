@@ -61,12 +61,15 @@ namespace YakuzaCombatMoves
     public static class SkillUncapPatches
     {
         /// <summary>
-        /// Patch to allow skills to level beyond 20
+        /// Patch to allow skills to level beyond 20 (only if mod setting enabled)
         /// </summary>
         [HarmonyPatch(typeof(SkillRecord), "Learn")]
         [HarmonyPrefix]
         public static bool SkillRecord_Learn_Prefix(SkillRecord __instance, float xp, bool direct = false)
         {
+            // Only apply uncap if our mod setting is enabled to avoid conflicts
+            if (!YakuzaCombatMod.settings.enableSkillUncap) return true;
+            
             // Don't interfere with disabled skills
             if (__instance.TotallyDisabled) return false;
             

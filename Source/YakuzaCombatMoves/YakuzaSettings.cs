@@ -8,7 +8,8 @@ namespace YakuzaCombatMoves
         // Main toggle settings
         public bool enableMod = true;
         public bool playerOnly = false; // Default: enemies can also use moves
-        public bool enableSkillUncap = true;
+        public bool enableSkillUncap = false; // Disabled - let other uncap mods handle this
+        public bool enableUncappedScaling = true; // Enabled - use higher levels for technique scaling
         
         // Move trigger chance modifiers
         public float moveChanceMultiplier = 1.0f;
@@ -34,7 +35,8 @@ namespace YakuzaCombatMoves
         {
             Scribe_Values.Look(ref enableMod, "enableMod", true);
             Scribe_Values.Look(ref playerOnly, "playerOnly", false);
-            Scribe_Values.Look(ref enableSkillUncap, "enableSkillUncap", true);
+            Scribe_Values.Look(ref enableSkillUncap, "enableSkillUncap", false);
+            Scribe_Values.Look(ref enableUncappedScaling, "enableUncappedScaling", true);
             Scribe_Values.Look(ref moveChanceMultiplier, "moveChanceMultiplier", 1.0f);
             Scribe_Values.Look(ref skillLevelInfluence, "skillLevelInfluence", 1.0f);
             Scribe_Values.Look(ref enableTigerDrop, "enableTigerDrop", true);
@@ -68,6 +70,9 @@ namespace YakuzaCombatMoves
                 
                 listingStandard.CheckboxLabeled("Enable Skill Uncap", ref enableSkillUncap, 
                     "Allow skills to exceed level 20 (up to level 999)");
+                
+                listingStandard.CheckboxLabeled("Enable Uncapped Scaling", ref enableUncappedScaling, 
+                    "If enabled: damage caps at level 20, but chance continues scaling beyond level 20");
                 
                 listingStandard.Gap();
                 
