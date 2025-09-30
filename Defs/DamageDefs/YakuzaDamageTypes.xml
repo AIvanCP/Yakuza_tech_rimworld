@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+  <!-- Custom damage types for Yakuza techniques with technique names -->
+  <DamageDef>
+    <defName>YakuzaTigerDrop</defName>
+    <label>Tiger Drop</label>
+    <workerClass>DamageWorker_Blunt</workerClass>
+    <externalViolence>true</externalViolence>
+    <deathMessage>{0} was destroyed by a Tiger Drop.</deathMessage>
+    <hediff>Crush</hediff>
+    <harmAllLayersUntilOutside>false</harmAllLayersUntilOutside>
+    <impactSoundType>Blunt</impactSoundType>
+    <armorCategory>Blunt</armorCategory>
+    <minDamageToFragment>4</minDamageToFragment>
+    <defaultDamage>8</defaultDamage>
+    <defaultArmorPenetration>0.20</defaultArmorPenetration>
+    <explosionAffectOutsidePartsWhenExplodingInside>true</explosionAffectOutsidePartsWhenExplodingInside>
+    <explosionHeatEnergyPerDamage>0.8</explosionHeatEnergyPerDamage>
+    <explosionCellMote>Mote_BlastFlame</explosionCellMote>
+    <explosionColorEdge>(1, 0.7, 0.7)</explosionColorEdge>
+    <explosionColorCenter>(1, 1, 0.7)</explosionColorCenter>
+    <soundImpactImplant>BulletImpact_Metal</soundImpactImplant>
+  </DamageDef>
+
+  <DamageDef>
+    <defName>YakuzaKomakiParry</defName>
+    <label>Komaki Parry</label>
+    <workerClass>DamageWorker_Cut</workerClass>
+    <externalViolence>true</externalViolence>
+    <deathMessage>{0} was sliced by a Komaki Parry.</deathMessage>
+    <hediff>Cut</hediff>
+    <harmAllLayersUntilOutside>true</harmAllLayersUntilOutside>
+    <impactSoundType>Slice</impactSoundType>
+    <armorCategory>Sharp</armorCategory>
+    <minDamageToFragment>4</minDamageToFragment>
+    <defaultDamage>10</defaultDamage>
+    <defaultArmorPenetration>0.40</defaultArmorPenetration>
+    <explosionAffectOutsidePartsWhenExplodingInside>true</explosionAffectOutsidePartsWhenExplodingInside>
+    <explosionHeatEnergyPerDamage>0.8</explosionHeatEnergyPerDamage>
+    <explosionCellMote>Mote_BlastFlame</explosionCellMote>
+    <explosionColorEdge>(1, 0.7, 0.7)</explosionColorEdge>
+    <explosionColorCenter>(1, 1, 0.7)</explosionColorCenter>
+    <soundImpactImplant>BulletImpact_Metal</soundImpactImplant>
+  </DamageDef>
+
+  <DamageDef>
+    <defName>YakuzaMadDogSlash</defName>
+    <label>Mad Dog Slash</label>
+    <workerClass>DamageWorker_Cut</workerClass>
+    <externalViolence>true</externalViolence>
+    <deathMessage>{0} was slashed by Mad Dog technique.</deathMessage>
+    <hediff>Cut</hediff>
+    <harmAllLayersUntilOutside>true</harmAllLayersUntilOutside>
+    <impactSoundType>Slice</impactSoundType>
+    <armorCategory>Sharp</armorCategory>
+    <minDamageToFragment>4</minDamageToFragment>
+    <defaultDamage>8</defaultDamage>
+    <defaultArmorPenetration>0.35</defaultArmorPenetration>
+    <additionalHediffs>
+      <li>
+        <hediff>Cut</hediff>
+        <severityPerDamageDealt>0.5</severityPerDamageDealt>
+        <victimSeverityScaling>TotalDamage</victimSeverityScaling>
+      </li>
+    </additionalHediffs>
+    <explosionAffectOutsidePartsWhenExplodingInside>true</explosionAffectOutsidePartsWhenExplodingInside>
+    <explosionHeatEnergyPerDamage>0.8</explosionHeatEnergyPerDamage>
+    <explosionCellMote>Mote_BlastFlame</explosionCellMote>
+    <explosionColorEdge>(1, 0.7, 0.7)</explosionColorEdge>
+    <explosionColorCenter>(1, 1, 0.7)</explosionColorCenter>
+    <soundImpactImplant>BulletImpact_Metal</soundImpactImplant>
+  </DamageDef>
+
+  <DamageDef>
+    <defName>YakuzaKomakiKnockback</defName>
+    <label>Komaki Knockback</label>
+    <workerClass>DamageWorker_Blunt</workerClass>
+    <externalViolence>true</externalViolence>
+    <deathMessage>{0} was crushed by Komaki Knockback.</deathMessage>
+    <hediff>Crush</hediff>
+    <harmAllLayersUntilOutside>false</harmAllLayersUntilOutside>
+    <impactSoundType>Blunt</impactSoundType>
+    <armorCategory>Blunt</armorCategory>
+    <minDamageToFragment>4</minDamageToFragment>
+    <defaultDamage>12</defaultDamage>
+    <defaultArmorPenetration>0.25</defaultArmorPenetration>
+    <explosionAffectOutsidePartsWhenExplodingInside>true</explosionAffectOutsidePartsWhenExplodingInside>
+    <explosionHeatEnergyPerDamage>0.8</explosionHeatEnergyPerDamage>
+    <explosionCellMote>Mote_BlastFlame</explosionCellMote>
+    <explosionColorEdge>(1, 0.7, 0.7)</explosionColorEdge>
+    <explosionColorCenter>(1, 1, 0.7)</explosionColorCenter>
+    <soundImpactImplant>BulletImpact_Metal</soundImpactImplant>
+  </DamageDef>
+
+  <DamageDef>
+    <defName>YakuzaHeatSpin</defName>
+    <label>Heat Spin</label>
+    <workerClass>DamageWorker_Blunt</workerClass>
+    <externalViolence>true</externalViolence>
+    <deathMessage>{0} was overwhelmed by Heat Spin.</deathMessage>
+    <hediff>Crush</hediff>
+    <harmAllLayersUntilOutside>false</harmAllLayersUntilOutside>
+    <impactSoundType>Blunt</impactSoundType>
+    <armorCategory>Blunt</armorCategory>
+    <minDamageToFragment>4</minDamageToFragment>
+    <defaultDamage>6</defaultDamage>
+    <defaultArmorPenetration>0.15</defaultArmorPenetration>
+    <explosionAffectOutsidePartsWhenExplodingInside>true</explosionAffectOutsidePartsWhenExplodingInside>
+    <explosionHeatEnergyPerDamage>0.8</explosionHeatEnergyPerDamage>
+    <explosionCellMote>Mote_BlastFlame</explosionCellMote>
+    <explosionColorEdge>(1, 0.7, 0.7)</explosionColorEdge>
+    <explosionColorCenter>(1, 1, 0.7)</explosionColorCenter>
+    <soundImpactImplant>BulletImpact_Metal</soundImpactImplant>
+  </DamageDef>
+
+  <DamageDef>
+    <defName>YakuzaWallCrush</defName>
+    <label>Wall Crush</label>
+    <workerClass>DamageWorker_Blunt</workerClass>
+    <externalViolence>true</externalViolence>
+    <deathMessage>{0} was crushed against a wall.</deathMessage>
+    <hediff>Crush</hediff>
+    <harmAllLayersUntilOutside>false</harmAllLayersUntilOutside>
+    <impactSoundType>Blunt</impactSoundType>
+    <armorCategory>Blunt</armorCategory>
+    <minDamageToFragment>4</minDamageToFragment>
+    <defaultDamage>15</defaultDamage>
+    <defaultArmorPenetration>0.30</defaultArmorPenetration>
+    <explosionAffectOutsidePartsWhenExplodingInside>true</explosionAffectOutsidePartsWhenExplodingInside>
+    <explosionHeatEnergyPerDamage>0.8</explosionHeatEnergyPerDamage>
+    <explosionCellMote>Mote_BlastFlame</explosionCellMote>
+    <explosionColorEdge>(1, 0.7, 0.7)</explosionColorEdge>
+    <explosionColorCenter>(1, 1, 0.7)</explosionColorCenter>
+    <soundImpactImplant>BulletImpact_Metal</soundImpactImplant>
+  </DamageDef>
+
+  <DamageDef>
+    <defName>YakuzaMadDogLunge</defName>
+    <label>Mad Dog Lunge</label>
+    <workerClass>DamageWorker_Stab</workerClass>
+    <externalViolence>true</externalViolence>
+    <deathMessage>{0} was pierced by Mad Dog Lunge.</deathMessage>
+    <hediff>Stab</hediff>
+    <harmAllLayersUntilOutside>true</harmAllLayersUntilOutside>
+    <impactSoundType>Stab</impactSoundType>
+    <armorCategory>Sharp</armorCategory>
+    <minDamageToFragment>4</minDamageToFragment>
+    <defaultDamage>14</defaultDamage>
+    <defaultArmorPenetration>0.45</defaultArmorPenetration>
+    <explosionAffectOutsidePartsWhenExplodingInside>true</explosionAffectOutsidePartsWhenExplodingInside>
+    <explosionHeatEnergyPerDamage>0.8</explosionHeatEnergyPerDamage>
+    <explosionCellMote>Mote_BlastFlame</explosionCellMote>
+    <explosionColorEdge>(1, 0.7, 0.7)</explosionColorEdge>
+    <explosionColorCenter>(1, 1, 0.7)</explosionColorCenter>
+    <soundImpactImplant>BulletImpact_Metal</soundImpactImplant>
+  </DamageDef>
+
+  <DamageDef>
+    <defName>YakuzaFirearmCounter</defName>
+    <label>Firearm Counter</label>
+    <workerClass>DamageWorker_Bullet</workerClass>
+    <externalViolence>true</externalViolence>
+    <deathMessage>{0} was shot by a Firearm Counter.</deathMessage>
+    <hediff>Gunshot</hediff>
+    <harmAllLayersUntilOutside>true</harmAllLayersUntilOutside>
+    <impactSoundType>Bullet</impactSoundType>
+    <armorCategory>Sharp</armorCategory>
+    <minDamageToFragment>4</minDamageToFragment>
+    <defaultDamage>18</defaultDamage>
+    <defaultArmorPenetration>0.50</defaultArmorPenetration>
+    <explosionAffectOutsidePartsWhenExplodingInside>true</explosionAffectOutsidePartsWhenExplodingInside>
+    <explosionHeatEnergyPerDamage>0.8</explosionHeatEnergyPerDamage>
+    <explosionCellMote>Mote_BlastFlame</explosionCellMote>
+    <explosionColorEdge>(1, 0.7, 0.7)</explosionColorEdge>
+    <explosionColorCenter>(1, 1, 0.7)</explosionColorCenter>
+    <soundImpactImplant>BulletImpact_Metal</soundImpactImplant>
+  </DamageDef>
+</Defs>

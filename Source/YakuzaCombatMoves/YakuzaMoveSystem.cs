@@ -141,7 +141,7 @@ namespace YakuzaCombatMoves
                 if (YakuzaCombatMod.settings.playerOnly && !pawn.IsColonist) return false;
                 
                 // Prevent techniques during mental states that would interfere
-                if (pawn.InMentalState || (pawn.IsColonist && pawn.Drafted == false)) return false;
+                if (pawn.InMentalState) return false;
                 
                 // Check if already using a technique (prevent loops)
                 if (pawn.stances?.curStance?.GetType()?.Name?.Contains("Yakuza") == true) return false;

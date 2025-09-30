@@ -33,7 +33,7 @@ namespace YakuzaCombatMoves
             counterDamage = PreventInstantKill(target, counterDamage);
             
             var damageInfo = new DamageInfo(
-                DamageDefOf.Blunt,
+                DefDatabase<DamageDef>.GetNamedSilentFail("YakuzaTigerDrop") ?? DamageDefOf.Blunt,
                 counterDamage,
                 0f,
                 -1f,
@@ -144,7 +144,7 @@ namespace YakuzaCombatMoves
             slashDamage = PreventInstantKill(target, slashDamage);
             
             var damageInfo = new DamageInfo(
-                DamageDefOf.Cut,
+                DefDatabase<DamageDef>.GetNamedSilentFail("YakuzaKomakiParry") ?? DamageDefOf.Cut,
                 slashDamage,
                 0f,
                 -1f,
@@ -207,7 +207,7 @@ namespace YakuzaCombatMoves
             slashDamage = PreventInstantKill(target, slashDamage);
             
             var damageInfo = new DamageInfo(
-                DamageDefOf.Cut,
+                DefDatabase<DamageDef>.GetNamedSilentFail("YakuzaMadDogSlash") ?? DamageDefOf.Cut,
                 slashDamage,
                 0f,
                 -1f,
@@ -272,7 +272,7 @@ namespace YakuzaCombatMoves
             bluntDamage = PreventInstantKill(target, bluntDamage);
             
             var damageInfo = new DamageInfo(
-                DamageDefOf.Blunt,
+                DefDatabase<DamageDef>.GetNamedSilentFail("YakuzaKomakiKnockback") ?? DamageDefOf.Blunt,
                 bluntDamage,
                 0f,
                 -1f,
@@ -352,7 +352,7 @@ namespace YakuzaCombatMoves
                         spinDamage = PreventInstantKill(enemy, spinDamage);
                         
                         var damageInfo = new DamageInfo(
-                            DamageDefOf.Blunt,
+                            DefDatabase<DamageDef>.GetNamedSilentFail("YakuzaHeatSpin") ?? DamageDefOf.Blunt,
                             spinDamage,
                             0f,
                             -1f,
@@ -545,7 +545,7 @@ namespace YakuzaCombatMoves
             wallDamage = PreventInstantKill(target, wallDamage);
             
             var damageInfo = new DamageInfo(
-                DamageDefOf.Blunt,
+                DefDatabase<DamageDef>.GetNamedSilentFail("YakuzaWallCrush") ?? DamageDefOf.Blunt,
                 wallDamage,
                 originalDamage.ArmorPenetrationInt,
                 originalDamage.Angle,
@@ -637,7 +637,7 @@ namespace YakuzaCombatMoves
             lungeDamage = PreventInstantKill(target, lungeDamage);
             
             var damageInfo = new DamageInfo(
-                DamageDefOf.Cut,
+                DefDatabase<DamageDef>.GetNamedSilentFail("YakuzaMadDogLunge") ?? DamageDefOf.Cut,
                 lungeDamage,
                 0f,
                 -1f,
@@ -702,7 +702,7 @@ namespace YakuzaCombatMoves
             shotDamage = PreventInstantKill(target, shotDamage);
             
             var damageInfo = new DamageInfo(
-                DamageDefOf.Bullet,
+                DefDatabase<DamageDef>.GetNamedSilentFail("YakuzaFirearmCounter") ?? DamageDefOf.Bullet,
                 shotDamage,
                 0f,
                 -1f,
