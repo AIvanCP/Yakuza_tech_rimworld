@@ -16,47 +16,55 @@ namespace YakuzaCombatMoves
     {
         private static bool processingTechnique = false; // Prevent recursion
         
-        // NOTE: Removed Verb_MeleeAttack.TryCastShot patch due to signature/access issues
-        // Using Pawn.TakeDamage as primary hook instead - more reliable and compatible
+        // NOTE: Using Pawn_HealthTracker.PreApplyDamage for RimWorld 1.5/1.6 compatibility
+        // This runs BEFORE damage is applied, allowing us to prevent/modify damage
         
         /// <summary>
         /// Primary patch for damage application - catches all melee and ranged attacks
-        /// This is the MAIN hook for all techniques
+        /// This is the MAIN hook for all techniques (RimWorld 1.5+ compatible)
         /// </summary>
-        [HarmonyPatch(typeof(Pawn), "TakeDamage")]
+        [HarmonyPatch(typeof(Pawn_HealthTracker), "PreApplyDamage")]
         [HarmonyPrefix]
-        public static bool Pawn_TakeDamage_Prefix(DamageInfo dinfo, Pawn __instance)
+        public static void Pawn_HealthTracker_PreApplyDamage_Prefix(ref DamageInfo dinfo, out bool absorbed, Pawn ___pawn)
         {
-            if (processingTechnique || __instance == null || __instance.Dead) return true;
+            absorbed = false;
+            
+            if (processingTechnique || ___pawn == null || ___pawn.Dead) return;
+            
+            Pawn victim = ___pawn;
             
             try
             {
                 // Only handle melee and ranged damage from other pawns
-                if (dinfo.Instigator is Pawn attacker && attacker != __instance)
+                if (dinfo.Instigator is Pawn attacker && attacker != victim)
                 {
                     // Check if this is melee damage (close range, blunt/cut damage)
                     bool isMelee = (dinfo.Def == DamageDefOf.Cut || dinfo.Def == DamageDefOf.Blunt || dinfo.Def == DamageDefOf.Stab) &&
-                                   attacker.Position.DistanceTo(__instance.Position) <= 2f;
+                                   attacker.Position.DistanceTo(victim.Position) <= 2f;
                     
                     if (isMelee)
                     {
-                        Log.Message($"[Yakuza Combat] Damage application: {attacker.LabelShort} → {__instance.LabelShort} ({dinfo.Def.defName})");
+                        Log.Message($"[Yakuza Combat] Damage application: {attacker.LabelShort} → {victim.LabelShort} ({dinfo.Def.defName})");
                         
                         // Try to trigger defensive technique
-                        if (YakuzaTechniqueSystem.TryTriggerOnMeleeReceived(__instance, attacker, dinfo))
+                        processingTechnique = true;
+                        bool techniqueTriggered = YakuzaTechniqueSystem.TryTriggerOnMeleeReceived(victim, attacker, dinfo);
+                        processingTechnique = false;
+                        
+                        if (techniqueTriggered)
                         {
                             Log.Message($"[Yakuza Combat] Damage negated by technique!");
-                            return false; // Skip normal damage
+                            absorbed = true; // Signal to game that damage was absorbed
+                            dinfo.SetAmount(0f); // Zero out damage
                         }
                     }
                 }
             }
             catch (System.Exception e)
             {
+                processingTechnique = false;
                 CompatibilityPatches.HandleModConflict(e, "Damage application patch");
             }
-            
-            return true;
         }
         
         /// <summary>

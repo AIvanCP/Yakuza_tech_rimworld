@@ -13,6 +13,8 @@ namespace YakuzaCombatMoves
         
         // Move trigger chance modifiers
         public float moveChanceMultiplier = 1.0f;
+    // Base chance for moves (as a fraction, e.g. 0.05 = 5%)
+    public float baseMoveChance = 0.05f;
         public float skillLevelInfluence = 1.0f;
         
         // Individual technique toggles
@@ -38,6 +40,7 @@ namespace YakuzaCombatMoves
             Scribe_Values.Look(ref enableSkillUncap, "enableSkillUncap", false);
             Scribe_Values.Look(ref enableUncappedScaling, "enableUncappedScaling", true);
             Scribe_Values.Look(ref moveChanceMultiplier, "moveChanceMultiplier", 1.0f);
+            Scribe_Values.Look(ref baseMoveChance, "baseMoveChance", 0.05f);
             Scribe_Values.Look(ref skillLevelInfluence, "skillLevelInfluence", 1.0f);
             Scribe_Values.Look(ref enableTigerDrop, "enableTigerDrop", true);
             Scribe_Values.Look(ref enableKomakiParry, "enableKomakiParry", true);
@@ -75,11 +78,14 @@ namespace YakuzaCombatMoves
                     "If enabled: damage caps at level 20, but chance continues scaling beyond level 20");
                 
                 listingStandard.Gap();
-                
+
                 // Chance modifiers
-                listingStandard.Label("Move Trigger Chance: " + (moveChanceMultiplier * 100f).ToString("F0") + "%");
+                listingStandard.Label("Base Move Chance: " + (baseMoveChance * 100f).ToString("F1") + "%");
+                baseMoveChance = listingStandard.Slider(baseMoveChance, 0f, 0.5f);
+
+                listingStandard.Label("Move Trigger Multiplier: " + (moveChanceMultiplier * 100f).ToString("F0") + "%");
                 moveChanceMultiplier = listingStandard.Slider(moveChanceMultiplier, 0.1f, 3.0f);
-                
+
                 listingStandard.Label("Skill Level Influence: " + (skillLevelInfluence * 100f).ToString("F0") + "%");
                 skillLevelInfluence = listingStandard.Slider(skillLevelInfluence, 0.1f, 2.0f);
                 

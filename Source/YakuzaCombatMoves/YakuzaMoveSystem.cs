@@ -68,36 +68,31 @@ namespace YakuzaCombatMoves
             
             Log.Message($"[Yakuza Combat] {pawn.LabelShort} melee skill level: {skillLevel}");
             
-            // TESTING: Set to 100% chance for debugging
-            float chance = 1.0f; // 100% chance for testing
-            
-            /* Original scaling - restore this when testing is done
-            // Unified scaling: 15% base + 2% per level to 20 + 0.2% beyond 20 (higher for testing)
-            float chance = 0.15f; // 15% base chance (increased for testing)
+            // Balanced scaling: baseMoveChance (configurable) + 1% per level to 20 + scaled beyond 20
+            float chance = YakuzaCombatMod.settings.baseMoveChance; // configurable base chance
             
             if (skillLevel <= 20)
             {
-                // Standard scaling: +2% per level up to 20 (increased for testing)
-                chance += skillLevel * 0.02f;
+                // Standard scaling: +1% per level up to 20, modifiable by skillLevelInfluence
+                chance += skillLevel * 0.01f * YakuzaCombatMod.settings.skillLevelInfluence;
             }
             else if (YakuzaCombatMod.settings.enableUncappedScaling)
             {
                 // Cap at level 20 base, then slower scaling beyond
-                chance += 20 * 0.02f; // 40% from first 20 levels
-                chance += (skillLevel - 20) * 0.002f; // +0.2% per level beyond 20
+                chance += 20 * 0.01f * YakuzaCombatMod.settings.skillLevelInfluence; // 20% from first 20 levels
+                chance += (skillLevel - 20) * 0.002f * YakuzaCombatMod.settings.skillLevelInfluence; // +0.2% per level beyond 20
             }
             else
             {
                 // If uncapped scaling disabled, cap at level 20 values
-                chance += 20 * 0.02f;
+                chance += 20 * 0.01f * YakuzaCombatMod.settings.skillLevelInfluence;
             }
-            */
             
             // Apply global multiplier
             chance *= YakuzaCombatMod.settings.moveChanceMultiplier;
             
-            // Hard cap at 70% (increased for testing)
-            float finalChance = Mathf.Clamp01(Mathf.Min(chance, 0.7f));
+            // Hard cap at 50% for balance
+            float finalChance = Mathf.Clamp01(Mathf.Min(chance, 0.5f));
             
             // Debug logging
             Log.Message($"[Yakuza Combat] {pawn.LabelShort} technique chance: {finalChance:P1} (skill level {skillLevel})");
@@ -166,14 +161,14 @@ namespace YakuzaCombatMoves
                     Log.Message($"[Yakuza Combat] {TechniqueName}: mod disabled");
                     return false;
                 }
-                // TESTING: Temporarily disable player-only check to debug
-                /*
+                
+                // Player-only check (if setting enabled)
                 if (YakuzaCombatMod.settings.playerOnly && !pawn.IsColonist && pawn.Faction != Faction.OfPlayer)
                 {
                     Log.Message($"[Yakuza Combat] {TechniqueName}: player only, pawn is not player faction (colonist={pawn.IsColonist}, faction={pawn.Faction?.Name})");
                     return false;
                 }
-                */
+                
                 Log.Message($"[Yakuza Combat] {TechniqueName}: pawn faction check - colonist={pawn.IsColonist}, faction={pawn.Faction?.Name}, playerOnly={YakuzaCombatMod.settings.playerOnly}");
                 
                 // Prevent techniques during mental states that would interfere
