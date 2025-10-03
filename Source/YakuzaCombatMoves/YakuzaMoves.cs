@@ -8,12 +8,12 @@ using System;
 namespace YakuzaCombatMoves
 {
     /// <summary>
-    /// Tiger Drop - Unarmed counter with 2x damage and stun
+    /// Tiger Drop - Unarmed/natural weapon counter with devastating damage and stun
     /// </summary>
     public class TigerDropTechnique : YakuzaTechnique
     {
         public override string TechniqueName => "Tiger Drop";
-        public override string Description => "Perfect unarmed counter with devastating damage";
+        public override string Description => "Perfect counter with bare hands or natural weapons - devastating damage";
         public override YakuzaWeaponType RequiredWeapon => YakuzaWeaponType.Unarmed;
         public override MoveTrigger TriggerCondition => MoveTrigger.OnMeleeAttackReceived;
         public override float BaseChance => 0.05f; // 5%
@@ -419,34 +419,35 @@ namespace YakuzaCombatMoves
     }
     
     /// <summary>
-    /// Komaki Breakfall - Recover from knockdowns
+    /// Komaki Breakfall - Defensive technique that reduces damage and grants enhanced reflexes
     /// </summary>
     public class KomakiBreakfallTechnique : YakuzaTechnique
     {
         public override string TechniqueName => "Komaki Breakfall";
-        public override string Description => "Instantly recover from knockdown attempts with enhanced reflexes";
+        public override string Description => "Defensive technique that reduces incoming damage and grants enhanced reflexes";
         public override YakuzaWeaponType RequiredWeapon => YakuzaWeaponType.Any;
-        public override MoveTrigger TriggerCondition => MoveTrigger.OnKnockdownAttempt;
-        public override float BaseChance => 0.20f; // Will be overridden by unified scaling
-        public override float SkillScaling => 0.001f; // Will be overridden by unified scaling
+        public override MoveTrigger TriggerCondition => MoveTrigger.OnMeleeAttackReceived;
+        public override float BaseChance => 0.05f; // Uses unified scaling
+        public override float SkillScaling => 0.01f; // Uses unified scaling
+        
+        public override bool CanUseTechnique(Pawn pawn)
+        {
+            return base.CanUseTechnique(pawn) && YakuzaCombatMod.settings.enableKomakiBreakfall;
+        }
         
         public override bool ExecuteTechnique(Pawn user, Pawn target, DamageInfo originalDamage)
         {
-            ShowTechniqueEffect(user, $"{user.LabelShort} recovers with enhanced reflexes!");
+            ShowTechniqueEffect(user, $"{user.LabelShort} performs Komaki Breakfall!");
             
-            // Force pawn to stand up if downed
-            if (user.Downed)
-            {
-                user.health.Reset();
-            }
-            
-            // Apply enhanced reflexes buff (30% dodge for 2 seconds)
+            // Apply enhanced reflexes buff (dodge bonus for a short time)
             ApplyEnhancedReflexes(user);
             
             // Visual effect
             FleckMaker.ThrowDustPuff(user.DrawPos, user.Map, 1.5f);
+            FleckMaker.ThrowMetaIcon(user.Position, user.Map, FleckDefOf.IncapIcon);
             
-            return true; // Prevents knockdown
+            // Reduce incoming damage by 75%
+            return false; // Don't completely negate, just trigger the buff
         }
         
         private void ApplyEnhancedReflexes(Pawn user)

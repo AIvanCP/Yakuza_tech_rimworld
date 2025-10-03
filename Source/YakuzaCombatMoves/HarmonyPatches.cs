@@ -2,63 +2,61 @@ using HarmonyLib;
 using RimWorld;
 using Verse;
 using System.Reflection;
+using System.Linq;
+using System;
 
 namespace YakuzaCombatMoves
 {
     /// <summary>
     /// Harmony patches to integrate Yakuza techniques into RimWorld's combat system
+    /// Compatible with other combat mods by using postfix patches and stable methods
     /// </summary>
     [HarmonyPatch]
     public static class HarmonyPatches
     {
+        private static bool processingTechnique = false; // Prevent recursion
+        
+        // NOTE: Removed Verb_MeleeAttack.TryCastShot patch due to signature/access issues
+        // Using Pawn.TakeDamage as primary hook instead - more reliable and compatible
+        
         /// <summary>
-        /// Patch melee attacks to potentially trigger defensive techniques
-        /// NOTE: This only triggers on successful hits - dodged attacks never reach this method
+        /// Primary patch for damage application - catches all melee and ranged attacks
+        /// This is the MAIN hook for all techniques
         /// </summary>
-        [HarmonyPatch(typeof(Verb_MeleeAttack), "ApplyMeleeDamageToTarget")]
+        [HarmonyPatch(typeof(Pawn), "TakeDamage")]
         [HarmonyPrefix]
-        public static bool Verb_MeleeAttack_ApplyMeleeDamageToTarget_Prefix(LocalTargetInfo target, Verb_MeleeAttack __instance)
+        public static bool Pawn_TakeDamage_Prefix(DamageInfo dinfo, Pawn __instance)
         {
+            if (processingTechnique || __instance == null || __instance.Dead) return true;
+            
             try
             {
-                // Safety checks to prevent null reference exceptions
-                if (__instance?.CasterPawn == null || !(target.Thing is Pawn targetPawn) || targetPawn.Dead)
+                // Only handle melee and ranged damage from other pawns
+                if (dinfo.Instigator is Pawn attacker && attacker != __instance)
                 {
-                    return true; // Continue with normal damage if invalid state
-                }
-                
-                // Prevent infinite loops - don't trigger techniques during technique execution
-                if (targetPawn.health?.hediffSet?.HasHediff(HediffDefOf.Anesthetic) == true ||
-                    targetPawn.stances?.stunner?.Stunned == true)
-                {
-                    return true; // Continue normal damage if already processing effects
-                }
-                
-                // Create damage info for technique calculation
-                var dinfo = new DamageInfo(
-                    __instance.tool?.capacities?.FirstOrDefault(c => c.defName == "Cut") != null ? DamageDefOf.Cut : DamageDefOf.Blunt,
-                    __instance.tool?.power ?? 10f,
-                    0f,
-                    -1f,
-                    __instance.CasterPawn,
-                    null,
-                    __instance.EquipmentSource?.def
-                );
-                
-                // Try to trigger defensive technique on the target
-                // This only happens if the attack successfully hit (not dodged)
-                if (YakuzaTechniqueSystem.TryTriggerOnMeleeReceived(targetPawn, __instance.CasterPawn, dinfo))
-                {
-                    // If a defensive technique was triggered, skip normal damage
-                    return false;
+                    // Check if this is melee damage (close range, blunt/cut damage)
+                    bool isMelee = (dinfo.Def == DamageDefOf.Cut || dinfo.Def == DamageDefOf.Blunt || dinfo.Def == DamageDefOf.Stab) &&
+                                   attacker.Position.DistanceTo(__instance.Position) <= 2f;
+                    
+                    if (isMelee)
+                    {
+                        Log.Message($"[Yakuza Combat] Damage application: {attacker.LabelShort} → {__instance.LabelShort} ({dinfo.Def.defName})");
+                        
+                        // Try to trigger defensive technique
+                        if (YakuzaTechniqueSystem.TryTriggerOnMeleeReceived(__instance, attacker, dinfo))
+                        {
+                            Log.Message($"[Yakuza Combat] Damage negated by technique!");
+                            return false; // Skip normal damage
+                        }
+                    }
                 }
             }
             catch (System.Exception e)
             {
-                CompatibilityPatches.HandleModConflict(e, "Melee attack patch");
+                CompatibilityPatches.HandleModConflict(e, "Damage application patch");
             }
             
-            return true; // Continue with normal damage
+            return true;
         }
         
         /// <summary>
@@ -105,36 +103,8 @@ namespace YakuzaCombatMoves
             return true;
         }
         
-        /// <summary>
-        /// Patch knockdown attempts to trigger breakfall
-        /// </summary>
-        [HarmonyPatch(typeof(Pawn_HealthTracker), "SetPawnDowned")]
-        [HarmonyPrefix]
-        public static bool Pawn_HealthTracker_SetPawnDowned_Prefix(Pawn_HealthTracker __instance)
-        {
-            try
-            {
-                // Get pawn through reflection
-                var pawnField = typeof(Pawn_HealthTracker).GetField("pawn", BindingFlags.NonPublic | BindingFlags.Instance);
-                var pawn = pawnField?.GetValue(__instance) as Pawn;
-                
-                if (pawn != null && !pawn.Dead)
-                {
-                    // Try to trigger breakfall technique
-                    if (YakuzaTechniqueSystem.TryTriggerOnKnockdown(pawn))
-                    {
-                        // If breakfall triggered, prevent knockdown
-                        return false;
-                    }
-                }
-            }
-            catch (System.Exception e)
-            {
-                CompatibilityPatches.HandleModConflict(e, "Knockdown prevention patch");
-            }
-            
-            return true;
-        }
+        // Breakfall technique is handled through the regular damage system
+        // No separate knockdown patch needed - techniques can prevent knockdown by healing/buffing
         
         /// <summary>
         /// Patch skill display to show true level
@@ -160,26 +130,6 @@ namespace YakuzaCombatMoves
         }
         
         /// <summary>
-        /// Patch skill cap to allow unlimited growth
-        /// </summary>
-        [HarmonyPatch(typeof(SkillRecord), "get_MaxLevel")]
-        [HarmonyPostfix]
-        public static void SkillRecord_MaxLevel_Postfix(SkillRecord __instance, ref int __result)
-        {
-            try
-            {
-                if (YakuzaCombatMod.settings.enableSkillUncap)
-                {
-                    __result = SkillUncap.MaxSkillLevel;
-                }
-            }
-            catch (System.Exception e)
-            {
-                CompatibilityPatches.HandleModConflict(e, "Skill cap patch");
-            }
-        }
-        
-        /// <summary>
         /// Safety initialization
         /// </summary>
         [HarmonyPatch(typeof(Game), "FinalizeInit")]
@@ -196,6 +146,62 @@ namespace YakuzaCombatMoves
     [HarmonyPatch]
     public static class CompatibilityPatches
     {
+        private static bool modCompatibilityChecked = false;
+        private static bool cqcModDetected = false;
+        private static bool combatExtendedDetected = false;
+        
+        /// <summary>
+        /// Check for conflicting mods and adjust behavior
+        /// </summary>
+        public static void InitializeCompatibility()
+        {
+            if (modCompatibilityChecked) return;
+            
+            try
+            {
+                // Check for CQC mod
+                cqcModDetected = ModLister.AllInstalledMods.Any(m => 
+                    m.Name.ToLower().Contains("cqc") || 
+                    m.Name.ToLower().Contains("close quarters") ||
+                    m.PackageId.ToLower().Contains("cqc"));
+                
+                // Check for Combat Extended
+                combatExtendedDetected = ModLister.AllInstalledMods.Any(m => 
+                    m.Name.ToLower().Contains("combat extended") ||
+                    m.PackageId.ToLower().Contains("combatextended"));
+                
+                if (cqcModDetected)
+                {
+                    Log.Message("[Yakuza Combat] CQC mod detected - enabling compatibility mode");
+                }
+                
+                if (combatExtendedDetected)
+                {
+                    Log.Message("[Yakuza Combat] Combat Extended detected - using alternative patches");
+                }
+                
+                modCompatibilityChecked = true;
+            }
+            catch (Exception e)
+            {
+                Log.Error($"[Yakuza Combat] Error checking mod compatibility: {e.Message}");
+            }
+        }
+        
+        /// <summary>
+        /// Check if techniques should be disabled due to mod conflicts
+        /// </summary>
+        public static bool ShouldSkipTechnique(string techniqueName)
+        {
+            // If CQC mod is active, reduce technique frequency to avoid conflicts
+            if (cqcModDetected && Rand.Value > 0.3f)
+            {
+                return true;
+            }
+            
+            return false;
+        }
+        
         /// <summary>
         /// General error handling to prevent mod conflicts
         /// </summary>

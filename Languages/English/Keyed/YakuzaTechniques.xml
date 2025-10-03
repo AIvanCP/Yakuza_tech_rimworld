@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+  <!-- Yakuza Combat Technique Names for Floating Text -->
+  
+  <Yakuza_TigerDrop>Tiger Drop!</Yakuza_TigerDrop>
+  <Yakuza_KomakiParry>Komaki Parry!</Yakuza_KomakiParry>
+  <Yakuza_MadDogDodgeSlash>Mad Dog Slash!</Yakuza_MadDogDodgeSlash>
+  <Yakuza_KomakiKnockback>Komaki Knockback!</Yakuza_KomakiKnockback>
+  <Yakuza_MajimaHeatSpin>Majima Heat Spin!</Yakuza_MajimaHeatSpin>
+  <Yakuza_KomakiBreakfall>Komaki Breakfall!</Yakuza_KomakiBreakfall>
+  <Yakuza_CatLikeReflexes>Cat-Like Reflexes!</Yakuza_CatLikeReflexes>
+  <Yakuza_WallCrush>Wall Crush!</Yakuza_WallCrush>
+  <Yakuza_MadDogLunge>Mad Dog Lunge!</Yakuza_MadDogLunge>
+  <Yakuza_FirearmCounter>Firearm Counter!</Yakuza_FirearmCounter>
+  
+</LanguageData>

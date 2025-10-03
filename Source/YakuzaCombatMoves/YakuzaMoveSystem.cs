@@ -49,40 +49,60 @@ namespace YakuzaCombatMoves
         /// </summary>
         public virtual float CalculateTriggerChance(Pawn pawn)
         {
-            if (!YakuzaCombatMod.settings.enableMod) return 0f;
+            if (!YakuzaCombatMod.settings.enableMod) 
+            {
+                Log.Message($"[Yakuza Combat] Mod disabled for {pawn.LabelShort}");
+                return 0f;
+            }
             
             var meleeSkill = pawn.skills?.GetSkill(SkillDefOf.Melee);
-            if (meleeSkill == null) return 0f;
+            if (meleeSkill == null) 
+            {
+                Log.Message($"[Yakuza Combat] No melee skill found for {pawn.LabelShort}");
+                return 0f;
+            }
             
             int skillLevel = YakuzaCombatMod.settings.enableSkillUncap 
                 ? SkillUncap.GetTrueSkillLevel(meleeSkill) 
                 : meleeSkill.Level;
             
-            // Unified scaling: 5% base + 1% per level to 20 + 0.1% beyond 20
-            float chance = 0.05f; // 5% base chance
+            Log.Message($"[Yakuza Combat] {pawn.LabelShort} melee skill level: {skillLevel}");
+            
+            // TESTING: Set to 100% chance for debugging
+            float chance = 1.0f; // 100% chance for testing
+            
+            /* Original scaling - restore this when testing is done
+            // Unified scaling: 15% base + 2% per level to 20 + 0.2% beyond 20 (higher for testing)
+            float chance = 0.15f; // 15% base chance (increased for testing)
             
             if (skillLevel <= 20)
             {
-                // Standard scaling: +1% per level up to 20
-                chance += skillLevel * 0.01f;
+                // Standard scaling: +2% per level up to 20 (increased for testing)
+                chance += skillLevel * 0.02f;
             }
             else if (YakuzaCombatMod.settings.enableUncappedScaling)
             {
                 // Cap at level 20 base, then slower scaling beyond
-                chance += 20 * 0.01f; // 20% from first 20 levels
-                chance += (skillLevel - 20) * 0.001f; // +0.1% per level beyond 20
+                chance += 20 * 0.02f; // 40% from first 20 levels
+                chance += (skillLevel - 20) * 0.002f; // +0.2% per level beyond 20
             }
             else
             {
                 // If uncapped scaling disabled, cap at level 20 values
-                chance += 20 * 0.01f;
+                chance += 20 * 0.02f;
             }
+            */
             
             // Apply global multiplier
             chance *= YakuzaCombatMod.settings.moveChanceMultiplier;
             
-            // Hard cap at 50%
-            return Mathf.Clamp01(Mathf.Min(chance, 0.5f));
+            // Hard cap at 70% (increased for testing)
+            float finalChance = Mathf.Clamp01(Mathf.Min(chance, 0.7f));
+            
+            // Debug logging
+            Log.Message($"[Yakuza Combat] {pawn.LabelShort} technique chance: {finalChance:P1} (skill level {skillLevel})");
+            
+            return finalChance;
         }
         
         /// <summary>
@@ -136,17 +156,81 @@ namespace YakuzaCombatMoves
             try
             {
                 // Basic safety checks
-                if (pawn == null || pawn.Dead || pawn.Downed) return false;
-                if (!YakuzaCombatMod.settings.enableMod) return false;
-                if (YakuzaCombatMod.settings.playerOnly && !pawn.IsColonist) return false;
+                if (pawn == null || pawn.Dead || pawn.Downed)
+                {
+                    Log.Message($"[Yakuza Combat] {TechniqueName}: pawn invalid (null={pawn == null}, dead={pawn?.Dead}, downed={pawn?.Downed})");
+                    return false;
+                }
+                if (!YakuzaCombatMod.settings.enableMod)
+                {
+                    Log.Message($"[Yakuza Combat] {TechniqueName}: mod disabled");
+                    return false;
+                }
+                // TESTING: Temporarily disable player-only check to debug
+                /*
+                if (YakuzaCombatMod.settings.playerOnly && !pawn.IsColonist && pawn.Faction != Faction.OfPlayer)
+                {
+                    Log.Message($"[Yakuza Combat] {TechniqueName}: player only, pawn is not player faction (colonist={pawn.IsColonist}, faction={pawn.Faction?.Name})");
+                    return false;
+                }
+                */
+                Log.Message($"[Yakuza Combat] {TechniqueName}: pawn faction check - colonist={pawn.IsColonist}, faction={pawn.Faction?.Name}, playerOnly={YakuzaCombatMod.settings.playerOnly}");
                 
                 // Prevent techniques during mental states that would interfere
-                if (pawn.InMentalState) return false;
+                if (pawn.InMentalState)
+                {
+                    Log.Message($"[Yakuza Combat] {TechniqueName}: pawn in mental state");
+                    return false;
+                }
                 
                 // Check if already using a technique (prevent loops)
-                if (pawn.stances?.curStance?.GetType()?.Name?.Contains("Yakuza") == true) return false;
+                if (pawn.stances?.curStance?.GetType()?.Name?.Contains("Yakuza") == true)
+                {
+                    Log.Message($"[Yakuza Combat] {TechniqueName}: already using technique");
+                    return false;
+                }
                 
-                return IsWeaponCompatible(pawn) && IsConditionMet(pawn);
+                // Check for incapacitating conditions (stun, anesthesia) that should always block techniques
+                if (pawn.health?.hediffSet != null)
+                {
+                    foreach (var hediff in pawn.health.hediffSet.hediffs)
+                    {
+                        // Block if pawn has serious debuffs that prevent action
+                        if (hediff.def.defName.Contains("Stun") || 
+                            hediff.def.defName.Contains("Anesthetic") ||
+                            hediff.def.defName.Contains("Unconscious"))
+                        {
+                            Log.Message($"[Yakuza Combat] {TechniqueName}: pawn has incapacitating hediff {hediff.def.defName}");
+                            return false;
+                        }
+                    }
+                }
+                
+                // Defensive/reactive techniques (parry, counter) should work even during attack cooldown
+                bool isDefensiveTechnique = TriggerCondition == MoveTrigger.OnMeleeAttackReceived || 
+                                           TriggerCondition == MoveTrigger.OnRangedAttackReceived ||
+                                           TriggerCondition == MoveTrigger.OnKnockdownAttempt;
+                
+                // For non-defensive techniques, check if pawn is busy/cooling down
+                if (!isDefensiveTechnique)
+                {
+                    var curStance = pawn.stances?.curStance;
+                    if (curStance is Stance_Busy || curStance is Stance_Cooldown)
+                    {
+                        Log.Message($"[Yakuza Combat] {TechniqueName}: pawn busy or cooling down (non-defensive technique)");
+                        return false;
+                    }
+                }
+                else
+                {
+                    Log.Message($"[Yakuza Combat] {TechniqueName}: defensive technique, bypassing busy/cooldown check");
+                }
+                
+                bool weaponOk = IsWeaponCompatible(pawn);
+                bool conditionOk = IsConditionMet(pawn);
+                Log.Message($"[Yakuza Combat] {TechniqueName}: weapon={weaponOk}, condition={conditionOk}");
+                
+                return weaponOk && conditionOk;
             }
             catch (System.Exception e)
             {
@@ -161,35 +245,105 @@ namespace YakuzaCombatMoves
         protected virtual bool IsWeaponCompatible(Pawn pawn)
         {
             var weapon = pawn.equipment?.Primary;
+            string weaponName = weapon?.def?.defName ?? "none";
+            Log.Message($"[Yakuza Combat] {TechniqueName}: checking weapon '{weaponName}' for requirement {RequiredWeapon}");
             
             switch (RequiredWeapon)
             {
                 case YakuzaWeaponType.Unarmed:
-                    return weapon == null;
+                    // Consider "unarmed" if no equipped weapon OR only has natural body parts (claws, fangs, etc.)
+                    bool isUnarmed = weapon == null || IsNaturalWeapon(weapon);
+                    Log.Message($"[Yakuza Combat] {TechniqueName}: unarmed check = {isUnarmed} (weapon null: {weapon == null}, natural: {IsNaturalWeapon(weapon)})");
+                    return isUnarmed;
                 
                 case YakuzaWeaponType.Katana:
-                    return weapon?.def.defName.ToLower().Contains("katana") == true ||
-                           weapon?.def.defName.ToLower().Contains("longsword") == true;
+                    bool isKatana = weapon != null && !IsNaturalWeapon(weapon) && 
+                                   (weapon.def.defName.ToLower().Contains("katana") ||
+                                    weapon.def.defName.ToLower().Contains("longsword") ||
+                                    weapon.def.defName.ToLower().Contains("sword") ||
+                                    weapon.def.defName.ToLower().Contains("blade") ||
+                                    weapon.def.defName.ToLower().Contains("scimitar") ||
+                                    weapon.def.defName.ToLower().Contains("saber") ||
+                                    weapon.def.defName.ToLower().Contains("rapier") ||
+                                    // Check weapon stats - katanas typically have good cut damage
+                                    (weapon.def.IsMeleeWeapon && 
+                                     weapon.def.tools?.Any(tool => tool.capacities?.Any(cap => cap.defName == "Cut") == true) == true &&
+                                     weapon.def.BaseMass >= 1.0f && weapon.def.BaseMass <= 3.0f)); // Sword-like weight range
+                    Log.Message($"[Yakuza Combat] {TechniqueName}: katana check = {isKatana}");
+                    return isKatana;
                 
                 case YakuzaWeaponType.Knife:
-                    return weapon?.def.defName.ToLower().Contains("knife") == true ||
-                           weapon?.def.defName.ToLower().Contains("dagger") == true;
+                    bool isKnife = weapon != null && !IsNaturalWeapon(weapon) &&
+                                  (weapon.def.defName.ToLower().Contains("knife") ||
+                                   weapon.def.defName.ToLower().Contains("dagger") ||
+                                   weapon.def.defName.ToLower().Contains("shiv") ||
+                                   weapon.def.defName.ToLower().Contains("stiletto") ||
+                                   weapon.def.defName.ToLower().Contains("kunai") ||
+                                   weapon.def.defName.ToLower().Contains("tanto") ||
+                                   weapon.def.defName.ToLower().Contains("dirk") ||
+                                   // Small cutting weapons with specific characteristics
+                                   (weapon.def.IsMeleeWeapon && weapon.def.BaseMass < 1.5f &&
+                                    weapon.def.tools?.Any(tool => tool.capacities?.Any(cap => cap.defName == "Cut" || cap.defName == "Stab") == true) == true));
+                    Log.Message($"[Yakuza Combat] {TechniqueName}: knife check = {isKnife}");
+                    return isKnife;
                 
                 case YakuzaWeaponType.Club:
-                    return weapon?.def.IsMeleeWeapon == true && 
-                           (weapon.def.defName.ToLower().Contains("mace") || 
-                            weapon.def.defName.ToLower().Contains("club") ||
-                            weapon.def.defName.ToLower().Contains("hammer"));
+                    bool isClub = weapon != null && !IsNaturalWeapon(weapon) &&
+                                 weapon.def.IsMeleeWeapon && 
+                                 (weapon.def.defName.ToLower().Contains("mace") || 
+                                  weapon.def.defName.ToLower().Contains("club") ||
+                                  weapon.def.defName.ToLower().Contains("hammer") ||
+                                  weapon.def.defName.ToLower().Contains("bat") ||
+                                  weapon.def.defName.ToLower().Contains("staff") ||
+                                  weapon.def.defName.ToLower().Contains("pole") ||
+                                  weapon.def.defName.ToLower().Contains("rod") ||
+                                  weapon.def.defName.ToLower().Contains("baton") ||
+                                  weapon.def.defName.ToLower().Contains("cudgel") ||
+                                  // Blunt weapons by damage type and characteristics
+                                  (weapon.def.tools?.Any(tool => tool.capacities?.Any(cap => cap.defName == "Blunt") == true) == true &&
+                                   weapon.def.BaseMass >= 0.5f)); // Exclude very light items
+                    Log.Message($"[Yakuza Combat] {TechniqueName}: club check = {isClub}");
+                    return isClub;
                 
                 case YakuzaWeaponType.Gun:
-                    return weapon?.def.IsRangedWeapon == true;
+                    bool isGun = weapon != null && !IsNaturalWeapon(weapon) && weapon.def.IsRangedWeapon;
+                    Log.Message($"[Yakuza Combat] {TechniqueName}: gun check = {isGun}");
+                    return isGun;
                 
                 case YakuzaWeaponType.Any:
+                    Log.Message($"[Yakuza Combat] {TechniqueName}: any weapon = true");
                     return true;
                 
                 default:
+                    Log.Message($"[Yakuza Combat] {TechniqueName}: unknown weapon type");
                     return false;
             }
+        }
+        
+        /// <summary>
+        /// Check if a weapon is a natural body part (claws, fangs, etc.) from modded races
+        /// </summary>
+        private bool IsNaturalWeapon(ThingWithComps weapon)
+        {
+            if (weapon == null) return false;
+            
+            string defName = weapon.def.defName.ToLower();
+            
+            // Common natural weapon indicators
+            return defName.Contains("claw") ||
+                   defName.Contains("fang") ||
+                   defName.Contains("tooth") ||
+                   defName.Contains("teeth") ||
+                   defName.Contains("hoof") ||
+                   defName.Contains("horn") ||
+                   defName.Contains("talon") ||
+                   defName.Contains("beak") ||
+                   defName.Contains("tail") ||
+                   defName.Contains("natural") ||
+                   defName.Contains("body") ||
+                   defName.Contains("limb") ||
+                   // Check if it's categorized as a body part
+                   weapon.def.weaponTags?.Any(tag => tag.Contains("Body") || tag.Contains("Natural")) == true;
         }
         
         /// <summary>
@@ -314,17 +468,43 @@ namespace YakuzaCombatMoves
         /// </summary>
         public static bool TryTriggerOnMeleeReceived(Pawn defender, Pawn attacker, DamageInfo damageInfo)
         {
-            if (!YakuzaCombatMod.settings.enableMod) return false;
+            if (!YakuzaCombatMod.settings.enableMod) 
+            {
+                Log.Message("[Yakuza Combat] Mod disabled, no techniques");
+                return false;
+            }
             if (defender?.Dead != false || attacker?.Dead != false) return false;
             
             var availableTechniques = GetAvailableTechniques(defender, MoveTrigger.OnMeleeAttackReceived);
+            Log.Message($"[Yakuza Combat] Found {availableTechniques.Count} available techniques for {defender.LabelShort}");
             
             foreach (var technique in availableTechniques)
             {
+                // Check for mod compatibility
+                if (CompatibilityPatches.ShouldSkipTechnique(technique.TechniqueName))
+                {
+                    Log.Message($"[Yakuza Combat] Skipping {technique.TechniqueName} due to mod compatibility");
+                    continue;
+                }
+                
                 float chance = technique.CalculateTriggerChance(defender);
+                Log.Message($"[Yakuza Combat] Checking {technique.TechniqueName}: {chance:P1} chance");
                 if (Rand.Chance(chance))
                 {
-                    return technique.ExecuteTechnique(defender, attacker, damageInfo);
+                    Log.Message($"[Yakuza Combat] {technique.TechniqueName} triggered!");
+                    bool success = technique.ExecuteTechnique(defender, attacker, damageInfo);
+                    
+                    // Show floating text when technique succeeds
+                    if (success && YakuzaCombatMod.settings.enableMoveText && defender?.Map != null)
+                    {
+                        string translationKey = $"Yakuza_{technique.TechniqueName.Replace(" ", "")}";
+                        string text = translationKey.Translate();
+                        // Use technique-specific color or default yellow
+                        Color textColor = GetTechniqueColor(technique.TechniqueName);
+                        MoteMaker.ThrowText(defender.DrawPos + new Vector3(0f, 0f, 0.5f), defender.Map, text, textColor, 3.5f);
+                    }
+                    
+                    return success;
                 }
             }
             
@@ -346,7 +526,18 @@ namespace YakuzaCombatMoves
                 float chance = technique.CalculateTriggerChance(defender);
                 if (Rand.Chance(chance))
                 {
-                    return technique.ExecuteTechnique(defender, attacker, damageInfo);
+                    bool success = technique.ExecuteTechnique(defender, attacker, damageInfo);
+                    
+                    // Show floating text when technique succeeds
+                    if (success && YakuzaCombatMod.settings.enableMoveText && defender?.Map != null)
+                    {
+                        string translationKey = $"Yakuza_{technique.TechniqueName.Replace(" ", "")}";
+                        string text = translationKey.Translate();
+                        Color textColor = GetTechniqueColor(technique.TechniqueName);
+                        MoteMaker.ThrowText(defender.DrawPos + new Vector3(0f, 0f, 0.5f), defender.Map, text, textColor, 3.5f);
+                    }
+                    
+                    return success;
                 }
             }
             
@@ -354,25 +545,32 @@ namespace YakuzaCombatMoves
         }
         
         /// <summary>
-        /// Try to trigger a technique on knockdown attempt
+        /// Get technique-specific color for floating text
         /// </summary>
-        public static bool TryTriggerOnKnockdown(Pawn pawn)
+        private static Color GetTechniqueColor(string techniqueName)
         {
-            if (!YakuzaCombatMod.settings.enableMod) return false;
-            if (pawn?.Dead != false) return false;
+            // Defensive/counter techniques - red/orange
+            if (techniqueName.Contains("Tiger Drop") || techniqueName.Contains("Parry"))
+                return new Color(1f, 0.3f, 0.1f); // Bright orange-red
             
-            var availableTechniques = GetAvailableTechniques(pawn, MoveTrigger.OnKnockdownAttempt);
+            // Dodge/reflex techniques - cyan/blue
+            if (techniqueName.Contains("Dodge") || techniqueName.Contains("Reflex") || techniqueName.Contains("Breakfall"))
+                return new Color(0.2f, 0.8f, 1f); // Bright cyan
             
-            foreach (var technique in availableTechniques)
-            {
-                float chance = technique.CalculateTriggerChance(pawn);
-                if (Rand.Chance(chance))
-                {
-                    return technique.ExecuteTechnique(pawn, null, new DamageInfo());
-                }
-            }
+            // Aggressive/damage techniques - yellow
+            if (techniqueName.Contains("Lunge") || techniqueName.Contains("Crush") || techniqueName.Contains("Knockback"))
+                return new Color(1f, 0.9f, 0.2f); // Bright yellow
             
-            return false;
+            // AoE/spin techniques - purple
+            if (techniqueName.Contains("Spin") || techniqueName.Contains("Heat"))
+                return new Color(0.9f, 0.3f, 1f); // Bright purple
+            
+            // Firearm counter - white
+            if (techniqueName.Contains("Firearm") || techniqueName.Contains("Counter"))
+                return new Color(0.95f, 0.95f, 0.95f); // Bright white
+            
+            // Default - bright yellow-orange
+            return new Color(1f, 0.85f, 0.3f);
         }
         
         /// <summary>
@@ -383,6 +581,7 @@ namespace YakuzaCombatMoves
             var available = new List<YakuzaTechnique>();
             foreach (var technique in allTechniques)
             {
+                Log.Message($"[Yakuza Combat] Checking {technique.TechniqueName} for {pawn.LabelShort}: trigger={technique.TriggerCondition}, can use={technique.CanUseTechnique(pawn)}");
                 if (technique.TriggerCondition == trigger && technique.CanUseTechnique(pawn))
                 {
                     available.Add(technique);
