@@ -63,7 +63,7 @@ namespace YakuzaCombatMoves
         public override void WriteSettings()
         {
             base.WriteSettings();
-            Log.Message("[Yakuza Combat Moves] Settings saved.");
+            // Log.Message("[Yakuza Combat Moves] Settings saved.");
         }
     }
 }

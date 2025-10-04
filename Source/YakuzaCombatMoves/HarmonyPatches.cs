@@ -44,7 +44,7 @@ namespace YakuzaCombatMoves
                     
                     if (isMelee)
                     {
-                        Log.Message($"[Yakuza Combat] Damage application: {attacker.LabelShort} → {victim.LabelShort} ({dinfo.Def.defName})");
+                        // Log.Message($"[Yakuza Combat] Damage application: {attacker.LabelShort} → {victim.LabelShort} ({dinfo.Def.defName})");
                         
                         // Try to trigger defensive technique
                         processingTechnique = true;
@@ -53,7 +53,7 @@ namespace YakuzaCombatMoves
                         
                         if (techniqueTriggered)
                         {
-                            Log.Message($"[Yakuza Combat] Damage negated by technique!");
+                            // Log.Message($"[Yakuza Combat] Damage negated by technique!");
                             absorbed = true; // Signal to game that damage was absorbed
                             dinfo.SetAmount(0f); // Zero out damage
                         }
@@ -144,7 +144,7 @@ namespace YakuzaCombatMoves
         [HarmonyPostfix]
         public static void Game_FinalizeInit_Postfix()
         {
-            Log.Message("[Yakuza Combat Mastery] Techniques initialized and ready for combat!");
+            // Log.Message("[Yakuza Combat Mastery] Techniques initialized and ready for combat!");
         }
     }
     
@@ -180,12 +180,12 @@ namespace YakuzaCombatMoves
                 
                 if (cqcModDetected)
                 {
-                    Log.Message("[Yakuza Combat] CQC mod detected - enabling compatibility mode");
+                    // Log.Message("[Yakuza Combat] CQC mod detected - enabling compatibility mode");
                 }
                 
                 if (combatExtendedDetected)
                 {
-                    Log.Message("[Yakuza Combat] Combat Extended detected - using alternative patches");
+                    // Log.Message("[Yakuza Combat] Combat Extended detected - using alternative patches");
                 }
                 
                 modCompatibilityChecked = true;
