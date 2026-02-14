@@ -26,6 +26,8 @@ namespace YakuzaCombatMoves
         
         public override bool ExecuteTechnique(Pawn user, Pawn target, DamageInfo originalDamage)
         {
+            if (!ValidatePawns(user, target)) return false;
+            
             ShowTechniqueEffect(user);
             
             // Calculate scaled damage with max 50 cap
@@ -54,8 +56,11 @@ namespace YakuzaCombatMoves
             }
             
             // Visual effects
-            FleckMaker.ThrowDustPuff(target.DrawPos, target.Map, 2f);
-            FleckMaker.ThrowMicroSparks(target.DrawPos, target.Map);
+            if (target.Map != null)
+            {
+                FleckMaker.ThrowDustPuff(target.DrawPos, target.Map, 2f);
+                FleckMaker.ThrowMicroSparks(target.DrawPos, target.Map);
+            }
             
             // Play custom sound if available
             PlayTechniqueSound("TigerDrop", user);
@@ -137,6 +142,8 @@ namespace YakuzaCombatMoves
         
         public override bool ExecuteTechnique(Pawn user, Pawn target, DamageInfo originalDamage)
         {
+            if (!ValidatePawns(user, target)) return false;
+            
             ShowTechniqueEffect(user, $"{user.LabelShort} parries and counters!");
             
             // Calculate scaled damage with max 50 cap
@@ -200,6 +207,8 @@ namespace YakuzaCombatMoves
         
         public override bool ExecuteTechnique(Pawn user, Pawn target, DamageInfo originalDamage)
         {
+            if (!ValidatePawns(user, target)) return false;
+            
             ShowTechniqueEffect(user, $"{user.LabelShort} dodges and slashes!");
             
             // Calculate scaled damage with max 45 cap
@@ -265,6 +274,8 @@ namespace YakuzaCombatMoves
         
         public override bool ExecuteTechnique(Pawn user, Pawn target, DamageInfo originalDamage)
         {
+            if (!ValidatePawns(user, target)) return false;
+            
             ShowTechniqueEffect(user, $"{user.LabelShort} delivers a crushing counter!");
             
             // Calculate scaled blunt damage with max 50 cap
@@ -333,6 +344,8 @@ namespace YakuzaCombatMoves
         
         public override bool ExecuteTechnique(Pawn user, Pawn target, DamageInfo originalDamage)
         {
+            if (!ValidatePawns(user, target)) return false;
+            
             ShowTechniqueEffect(user, $"{user.LabelShort} unleashes a heat spin attack!");
             
             int enemiesHit = 0;
@@ -437,6 +450,8 @@ namespace YakuzaCombatMoves
         
         public override bool ExecuteTechnique(Pawn user, Pawn target, DamageInfo originalDamage)
         {
+            if (!ValidatePawns(user, target)) return false;
+            
             ShowTechniqueEffect(user, $"{user.LabelShort} performs Komaki Breakfall!");
             
             // Apply enhanced reflexes buff (dodge bonus for a short time)
@@ -488,6 +503,8 @@ namespace YakuzaCombatMoves
         
         public override bool ExecuteTechnique(Pawn user, Pawn target, DamageInfo originalDamage)
         {
+            if (!ValidatePawns(user, target)) return false;
+            
             ShowTechniqueEffect(user, $"{user.LabelShort} dodges with cat-like reflexes!");
             
             // Apply brief enhanced reflexes after successful dodge
@@ -537,6 +554,8 @@ namespace YakuzaCombatMoves
         
         public override bool ExecuteTechnique(Pawn user, Pawn target, DamageInfo originalDamage)
         {
+            if (!ValidatePawns(user, target)) return false;
+            
             ShowTechniqueEffect(user, $"{user.LabelShort} crushes {target.LabelShort} against the wall!");
             
             // Enhanced damage calculation: base damage + wall bonus, capped at 60
@@ -631,6 +650,8 @@ namespace YakuzaCombatMoves
         
         public override bool ExecuteTechnique(Pawn user, Pawn target, DamageInfo originalDamage)
         {
+            if (!ValidatePawns(user, target)) return false;
+            
             ShowTechniqueEffect(user, $"{user.LabelShort} lunges forward!");
             
             // Calculate scaled dash damage with max 40 cap
@@ -696,6 +717,8 @@ namespace YakuzaCombatMoves
         
         public override bool ExecuteTechnique(Pawn user, Pawn target, DamageInfo originalDamage)
         {
+            if (!ValidatePawns(user, target)) return false;
+            
             ShowTechniqueEffect(user, $"{user.LabelShort} fires point-blank!");
             
             // Calculate scaled shot damage with max 35 cap

@@ -115,7 +115,7 @@
   <DamageDef>
     <defName>YakuzaFirearmCounter</defName>
     <label>Firearm Counter</label>
-    <workerClass>DamageWorker_Bullet</workerClass>
+    <workerClass>DamageWorker_Blunt</workerClass>
     <externalViolence>true</externalViolence>
     <deathMessage>{0} was shot by a Firearm Counter.</deathMessage>
     <hediff>Gunshot</hediff>

@@ -172,7 +172,6 @@
   <SoundDef>
     <defName>YakuzaTigerDrop</defName>
     <context>MapOnly</context>
-    <eventNames />
     <maxSimultaneous>3</maxSimultaneous>
     <subSounds>
       <li>
@@ -181,8 +180,8 @@
             <clipPath>Yakuza/TigerDrop</clipPath>
           </li>
         </grains>
-        <volumeRange>0.8~1.2</volumeRange>
-        <pitchRange>0.9~1.1</pitchRange>
+        <volumeRange>50~60</volumeRange>
+        <pitchRange>0.95~1.05</pitchRange>
       </li>
     </subSounds>
   </SoundDef>

@@ -398,6 +398,18 @@ namespace YakuzaCombatMoves
         }
         
         /// <summary>
+        /// Validate that pawns are valid for technique execution
+        /// </summary>
+        protected bool ValidatePawns(Pawn user, Pawn target)
+        {
+            if (target == null || target.Dead || target.Downed || target.health == null)
+                return false;
+            if (user == null || user.Dead || user.Map == null)
+                return false;
+            return true;
+        }
+        
+        /// <summary>
         /// Execute the technique
         /// </summary>
         public abstract bool ExecuteTechnique(Pawn user, Pawn target, DamageInfo originalDamage);
